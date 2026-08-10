@@ -1,0 +1,4 @@
+vendor/ffmpeg/core/ffmpeg-core.wasm -diff -text
+vendor/ffmpeg/**/*.js -diff linguist-vendored
+vendor/ffmpeg/**/*.wasm -diff linguist-vendored
+vendor/ffmpeg/**/LICENSE linguist-vendored
