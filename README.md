@@ -38,6 +38,21 @@ Opponent 22’ 28’ 37’ 60’ 76’
    the Share Sheet so you can save straight to Photos. After a successful
    save, the form resets automatically for the next match.
 
+## Match log
+
+Every match you build is saved to a log in the browser, below the builder.
+The log shows a running record — played, won, drawn, lost, scored, conceded —
+and one row per match. Each row can be rebuilt (↻) to regenerate its graphic,
+or deleted (✕).
+
+Rebuilding a match that already has a `Matchday X` label updates that entry
+rather than adding a duplicate, so correcting a typo and rebuilding keeps the
+log clean.
+
+The log lives in the browser's local storage on the device you used. It is not
+uploaded anywhere, and it will not follow you to another phone or browser.
+Clearing your browser data clears the log.
+
 ## Deploying with GitHub Pages
 
 This is a static site — `index.html` is the entry point.
