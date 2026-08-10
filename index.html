@@ -4,131 +4,321 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Match Graphic Builder — 9:16</title>
+<meta name="theme-color" content="#070c0a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
 <style>
+:root{
+  --bg:#070c0a;
+  --panel:#0e1613;
+  --panel-2:#121d18;
+  --line:#243329;
+  --line-2:#31453a;
+  --green:#3ee87f;
+  --green-deep:#0f2a1c;
+  --text:#f2f7f4;
+  --text-2:#a6bcb1;
+  --text-3:#7d918a;
+  --red:#ff5a6e;
+  --amber:#ffc857;
+  --r:16px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
 *{box-sizing:border-box}
-body{margin:0;background:#070a09;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-.app{max-width:1100px;margin:auto;padding:18px}
-.layout{display:grid;grid-template-columns:420px 1fr;gap:18px}
-.panel{background:#101715;border:1px solid #26322e;border-radius:24px;padding:18px}
-h1{margin:0;font-size:28px;font-weight:950}
-.sub{color:#9ba5a1;font-size:14px;margin:7px 0 15px}
-textarea{width:100%;height: 58px;background:#070a09;color:#fff;border:1px solid #34443e;border-radius:17px;padding:14px;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical;outline:none}
-textarea:focus{border-color:#43f27b}
-.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-button{border:0;border-radius:13px;padding:13px 15px;background:#293631;color:#fff;font-weight:900;font-size:14px;cursor:pointer}
-button:active{transform:scale(.98)}
-.primary,.save{background:#43f27b;color:#061008}
-.save{width:100%;font-size:16px}
-.note{color:#909a96;font-size:12px;line-height:1.45;margin-top:10px}
-.previewWrap{background:#070a09;border-radius:24px;padding:12px;border:1px solid #26322e}
-canvas{display:block;width:100%;height:auto;border-radius:18px;background:#070a09}
-.hidden{display:none!important}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.app{padding:12px}}
-
-.compact-paste-box{
-  height:58px !important;
-  min-height:58px !important;
-  max-height:58px !important;
-  overflow-y:auto !important;
-  resize:vertical;
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1100px 600px at 50% -180px,rgba(62,232,127,.13),transparent 70%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font);
+  -webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
 }
-
-/* Compact generated graphic preview: hidden until the package button is tapped. */
-.graphic-package{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  width:100%;
-  margin-top:0;
-  padding:12px 14px;
-  border:1px solid #34443e;
-  border-radius:14px;
-  background:#0d1412;
-  color:#eef2f0;
-  cursor:pointer;
-  user-select:none;
-  font:800 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-}
-.graphic-package .package-icon{
-  font-size:22px;
-  line-height:1;
-}
-.graphic-package .package-copy{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap:2px;
-}
-.graphic-package .package-title{color:#f3f6f4;}
-.graphic-package .package-subtitle{color:#93a19a;font-size:11px;font-weight:700;}
-.graphic-preview-wrap{
-  display:none;
-  margin-top:12px;
-  text-align:center;
-}
-.graphic-preview-wrap.open{display:block;}
-.graphic-preview-wrap canvas{
-  max-width:100%;
-  height:auto;
-  display:block;
+.app{
+  max-width:1120px;
   margin:0 auto;
+  padding:20px 16px calc(40px + env(safe-area-inset-bottom));
+}
+
+/* ---------- masthead ---------- */
+.masthead{display:flex;align-items:center;gap:13px;margin-bottom:20px}
+.brand-mark{
+  width:46px;height:46px;flex:0 0 46px;
+  display:grid;place-items:center;
+  font-size:24px;line-height:1;
+  border-radius:14px;
+  background:linear-gradient(150deg,rgba(62,232,127,.22),rgba(62,232,127,.05));
+  border:1px solid rgba(62,232,127,.34);
+}
+.masthead h1{margin:0;font-size:21px;font-weight:900;letter-spacing:-.02em}
+.tagline{margin:3px 0 0;font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:.04em;text-transform:uppercase}
+
+/* ---------- panels ---------- */
+.layout{display:grid;grid-template-columns:1fr;gap:16px}
+.panel{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:18px;
+}
+.panel-title{margin:0;font-size:15px;font-weight:900;letter-spacing:.01em}
+.panel-sub{margin:6px 0 14px;font-size:13px;line-height:1.5;color:var(--text-2)}
+.hint{margin:12px 0 0;font-size:12px;line-height:1.55;color:var(--text-3)}
+.hint b{color:var(--text-2)}
+
+/* ---------- input ---------- */
+.paste{
+  width:100%;
+  height:74px;min-height:74px;max-height:74px;
+  overflow-y:auto;
+  resize:vertical;
+  background:#050908;
+  color:var(--text);
+  border:1px solid var(--line-2);
+  border-radius:14px;
+  padding:12px 13px;
+  font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  outline:none;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.paste::placeholder{color:#54655d}
+.paste:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(62,232,127,.13)}
+
+.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.btn{
+  appearance:none;border:0;cursor:pointer;
   border-radius:12px;
+  padding:12px 15px;
+  font-family:var(--font);
+  font-size:14px;font-weight:800;
+  letter-spacing:.01em;
+  transition:transform .12s ease,filter .15s ease,background .15s ease;
+}
+.btn:active{transform:scale(.975)}
+.btn.primary{
+  flex:1 1 auto;min-width:170px;
+  background:linear-gradient(160deg,#5cf494,var(--green));
+  color:#04180d;
+  box-shadow:0 6px 18px -8px rgba(62,232,127,.7);
+}
+.btn.ghost{background:#1a2723;color:var(--text);border:1px solid var(--line-2)}
+.btn.ghost:hover{background:#20302a}
+.btn.save{
+  width:100%;margin-top:14px;
+  padding:15px;font-size:15px;
+  background:linear-gradient(160deg,#5cf494,var(--green));
+  color:#04180d;
+  box-shadow:0 6px 18px -8px rgba(62,232,127,.7);
+}
+.btn.tiny{padding:7px 11px;font-size:12px;border-radius:9px}
+
+/* ---------- output ---------- */
+.package{
+  display:flex;align-items:center;gap:12px;
+  width:100%;
+  padding:14px;
+  border:1px solid var(--line-2);
+  border-radius:15px;
+  background:#0b1310;
+  color:var(--text);
+  cursor:pointer;
+  text-align:left;
+  font-family:var(--font);
+  transition:border-color .15s ease,background .15s ease;
+}
+.package:hover{border-color:var(--green);background:#0e1a15}
+.package-icon{font-size:23px;line-height:1;flex:0 0 auto}
+.package-copy{display:flex;flex-direction:column;gap:3px;flex:1 1 auto;min-width:0}
+.package-title{font-size:14px;font-weight:900}
+.package-sub{font-size:11.5px;font-weight:700;color:var(--text-3)}
+.package-chevron{
+  font-size:19px;color:var(--text-3);flex:0 0 auto;
+  transition:transform .2s ease;
+}
+.package[aria-expanded="true"] .package-chevron{transform:rotate(90deg)}
+
+.preview{display:none;margin-top:14px}
+.preview.open{display:block}
+.preview canvas{
+  display:block;width:100%;height:auto;max-width:420px;margin:0 auto;
+  border-radius:14px;
+  border:1px solid var(--line);
+}
+
+/* ---------- match log ---------- */
+.log-panel{margin-top:16px}
+.log-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.log-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{
+  display:flex;align-items:baseline;gap:6px;
+  padding:8px 12px;
+  border-radius:11px;
+  background:#0b1310;
+  border:1px solid var(--line);
+  font-size:12px;font-weight:800;
+}
+.chip .k{color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-size:10px}
+.chip .v{color:var(--text);font-size:14px;font-weight:900}
+.chip .v.win{color:var(--green)}
+.chip .v.loss{color:var(--red)}
+
+.log-list{display:flex;flex-direction:column;gap:9px}
+.log-empty{
+  padding:22px 16px;text-align:center;
+  color:var(--text-3);font-size:13px;line-height:1.6;
+  border:1px dashed var(--line-2);border-radius:14px;
+}
+.log-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 13px;
+  background:#0b1310;
+  border:1px solid var(--line);
+  border-radius:14px;
+}
+.log-badge{
+  flex:0 0 auto;
+  width:32px;height:32px;
+  display:grid;place-items:center;
+  border-radius:10px;
+  font-size:12px;font-weight:900;
+}
+.log-badge.w{background:rgba(62,232,127,.14);color:var(--green);border:1px solid rgba(62,232,127,.4)}
+.log-badge.l{background:rgba(255,90,110,.13);color:var(--red);border:1px solid rgba(255,90,110,.38)}
+.log-badge.d{background:rgba(255,200,87,.13);color:var(--amber);border:1px solid rgba(255,200,87,.36)}
+.log-main{flex:1 1 auto;min-width:0}
+.log-md{font-size:10.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.log-score{
+  margin-top:3px;font-size:13.5px;font-weight:800;color:var(--text);
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+.log-score .n{font-weight:900}
+.log-actions{display:flex;gap:6px;flex:0 0 auto}
+.icon-btn{
+  appearance:none;cursor:pointer;
+  width:34px;height:34px;
+  display:grid;place-items:center;
+  border-radius:10px;
+  background:#16211d;border:1px solid var(--line-2);
+  color:var(--text-2);font-size:14px;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+.icon-btn:hover{background:#1e2c26;color:var(--text)}
+.icon-btn.danger:hover{background:rgba(255,90,110,.14);border-color:rgba(255,90,110,.45);color:var(--red)}
+.icon-btn:active{transform:scale(.94)}
+
+[hidden]{display:none!important}
+
+@media(min-width:900px){
+  .app{padding:28px 22px 56px}
+  .layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  .masthead h1{font-size:24px}
+  .preview canvas{max-width:100%}
 }
 </style>
 </head>
 <body>
 <div class="app">
-<div class="layout">
-<section class="panel">
-<h1>⚡ Match Graphic Builder</h1>
-<div class="sub">Paste the simplified match format. Each player's minutes match the symbols in order, and the graphic is built automatically.</div>
-<textarea id="data" spellcheck="false" class="compact-paste-box"></textarea>
-<div class="buttons">
-<button id="sample">Reset sample</button>
-<button id="clear">Clear</button>
-<button id="build" class="primary">✓ Confirm &amp; Build Graphic</button>
-</div>
-<div class="note">1080 × 1920 TikTok format. Minutes and symbols are matched automatically, home events stay left, opponent events stay right, and missing AI goals are inferred from assists.</div>
-</section>
 
-<div>
-<div id="previewWrap" class="previewWrap hidden">
-<button id="pkg" type="button" class="graphic-package hidden">
-  <span class="package-icon">📦</span>
-  <span class="package-copy">
-    <span class="package-title">Generated graphic</span>
-    <span class="package-subtitle" id="pkgSubtitle">Tap to view</span>
-  </span>
-</button>
-<div id="graphicPreviewWrap" class="graphic-preview-wrap">
-  <canvas id="canvas" width="1080" height="1920"></canvas>
-</div>
-</div>
-<div id="saveArea" class="panel hidden" style="margin-top:12px">
-<button id="save" class="save">📸 Save 9:16 Graphic</button>
-<div class="note">On iPhone, this uses the Share Sheet when available. Choose <b>Save Image</b> to put it in Photos.</div>
-</div>
-</div>
-</div>
+  <header class="masthead">
+    <span class="brand-mark">⚽</span>
+    <div>
+      <h1>Match Graphic Builder</h1>
+      <p class="tagline">1080 × 1920 · TikTok &amp; Instagram</p>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <section class="panel">
+      <h2 class="panel-title">Match data</h2>
+      <p class="panel-sub">Paste your match summary. Minutes pair with the symbols in order.</p>
+      <textarea id="data" class="paste" spellcheck="false" autocapitalize="off" autocorrect="off"
+        placeholder="Matchday 1&#10;Great Colne 6-5 Opponent🟩&#10;Mckeown 14’ 25’ ⚽️🅰️"></textarea>
+      <div class="buttons">
+        <button id="sample" class="btn ghost" type="button">Sample</button>
+        <button id="clear" class="btn ghost" type="button">Clear</button>
+        <button id="build" class="btn primary" type="button">✓ Confirm &amp; Build Graphic</button>
+      </div>
+      <p class="hint">Home events stay left, opponent events stay right. Goals with no recorded assist are inferred as AI.</p>
+    </section>
+
+    <section class="panel" id="outputPanel" hidden>
+      <h2 class="panel-title">Your graphic</h2>
+      <p class="panel-sub">Built and ready. Open it to check it over, then save.</p>
+      <button id="pkg" class="package" type="button" aria-expanded="false" aria-controls="preview">
+        <span class="package-icon">📦</span>
+        <span class="package-copy">
+          <span class="package-title">Generated graphic</span>
+          <span class="package-sub" id="pkgSub">Tap to view</span>
+        </span>
+        <span class="package-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="preview" id="preview">
+        <canvas id="canvas" width="1080" height="1920"></canvas>
+      </div>
+      <button id="save" class="btn save" type="button">📸 Save 9:16 Graphic</button>
+      <p class="hint">On iPhone this opens the Share Sheet — choose <b>Save Image</b> to put it in Photos.</p>
+    </section>
+
+  </div>
+
+  <section class="panel log-panel">
+    <div class="log-head">
+      <h2 class="panel-title">Match log</h2>
+      <button id="clearLog" class="btn ghost tiny" type="button" hidden>Clear all</button>
+    </div>
+    <div id="logSummary" class="log-summary" hidden></div>
+    <div id="logList" class="log-list"></div>
+  </section>
+
 </div>
 
 <script>
 (() => {
-const SAMPLE = `Matchday 4
-Great Colne 0-8 Opponent🟥
-Maximus
-Mckeown
-Opponent 5’ 11’ 19’ 29’ 34’ 65’ 67’ 71’`;
+'use strict';
 
-const data = document.getElementById('data');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const saveArea = document.getElementById('saveArea');
-const previewWrap = document.getElementById('previewWrap');
-const pkg = document.getElementById('pkg');
-const pkgSubtitle = document.getElementById('pkgSubtitle');
-const graphicPreviewWrap = document.getElementById('graphicPreviewWrap');
+const FONT='-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+
+const SAMPLE = `Matchday 1
+Great Colne 6-5 Opponent🟩
+Mckeown 14’ 25’ 69’ 94’ ⚽️🅰️🅰️🅰️
+Maximus 74’ 87’ 94’ 🅰️⚽️⚽️
+Opponent 22’ 28’ 37’ 60’ 76’`;
+
+// Graphic palette. Kept bright and high-contrast: no near-black greys on
+// dark backgrounds, so the export stays legible when compressed by social apps.
+const C={
+  green:'#3ee87f',
+  greenInk:'#d8fbe6',
+  text:'#f4f8f6',
+  text2:'#b6cabf',
+  text3:'#8fa49b',
+  line:'#27382f',
+  line2:'#35493e',
+  red:'#ff5a6e',
+  amber:'#ffc857',
+  panel:'rgba(6,14,11,.86)',
+  pillHome:'#0d2418',
+  pillOpp:'#131b18',
+  oppStroke:'#55665e'
+};
+
+const data=document.getElementById('data');
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const outputPanel=document.getElementById('outputPanel');
+const pkg=document.getElementById('pkg');
+const pkgSub=document.getElementById('pkgSub');
+const preview=document.getElementById('preview');
+const logList=document.getElementById('logList');
+const logSummary=document.getElementById('logSummary');
+const clearLogBtn=document.getElementById('clearLog');
+
+/* ============================ PARSING ============================ */
+/* The input contract is unchanged. */
 
 function parse(raw){
   const lines = raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
@@ -188,8 +378,8 @@ function parse(raw){
     const symbolMatch = line.match(/⚽️|⚽|🅰️|🅰/gu) || [];
     const minuteMatches = line.match(/\d+\s*[’'](?:\s*\+\s*\d+)?/gu) || [];
 
-    // Player-only lines are valid in the compact format and must still appear
-    // in Player Stats with 0 goals / 0 assists.
+    // Player-only lines are valid and must still appear in Player Stats
+    // with 0 goals / 0 assists.
     if(!symbolMatch.length && !minuteMatches.length){
       const playerOnly=line.replace(/[🟥🟩]/gu,'').trim();
       if(playerOnly && playerOnly.toLowerCase() !== 'et'){
@@ -270,8 +460,7 @@ function parse(raw){
 
   compact.sort((a,b)=>a.sortMinute-b.sortMinute);
 
-  // Infer omitted AI goals for assists that do not have a home goal at the
-  // same exact minute.
+  // Infer omitted AI goals for assists with no home goal at the same minute.
   const goalKeys=new Set(
     compact.filter(e=>e.type==='goal')
       .map(e=>`${e.minute}|${e.sortMinute}|${e.et}`)
@@ -320,414 +509,664 @@ function parse(raw){
 
   return out;
 }
-function roundRect(c,x,y,w,h,r){
+
+/* ========================= CANVAS PRIMITIVES ========================= */
+
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+
+// Timeline geometry shared between layout measurement and drawing.
+const TL_HEAD=112;   // panel title, team labels and divider
+const TL_FOOT=26;    // breathing room under the last row
+const ROW_MIN=44;
+const ROW_MAX=112;
+const ET_BLOCK=56;   // height reserved for the EXTRA TIME divider
+
+function hexA(hex,a){
+  const h=hex.replace('#','');
+  const full=h.length===3?h.split('').map(c=>c+c).join(''):h;
+  const n=parseInt(full,16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function roundRect(x,y,w,h,r){
   const rr=Math.min(r,w/2,h/2);
-  c.beginPath();c.moveTo(x+rr,y);c.arcTo(x+w,y,x+w,y+h,rr);
-  c.arcTo(x+w,y+h,x,y+h,rr);c.arcTo(x,y+h,x,y,rr);c.arcTo(x,y,x+w,y,rr);c.closePath();
+  ctx.beginPath();
+  ctx.moveTo(x+rr,y);
+  ctx.arcTo(x+w,y,x+w,y+h,rr);
+  ctx.arcTo(x+w,y+h,x,y+h,rr);
+  ctx.arcTo(x,y+h,x,y,rr);
+  ctx.arcTo(x,y,x+w,y,rr);
+  ctx.closePath();
 }
-function box(x,y,w,h,r=24,fill='#0b1010',stroke='#283030'){
-  roundRect(ctx,x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();
-  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}
+
+function box(x,y,w,h,r,fill,stroke,lineWidth){
+  roundRect(x,y,w,h,r);
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lineWidth||2;ctx.stroke();}
 }
-function text(t,x,y,size,weight='700',color='#fff',align='left'){
-  ctx.font=`${weight} ${size}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
-  ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(t,x,y);
+
+function setFont(size,weight){ctx.font=`${weight} ${size}px ${FONT}`;}
+
+function measure(t,size,weight){setFont(size,weight);return ctx.measureText(t).width;}
+
+function text(t,x,y,size,weight,color,align){
+  setFont(size,weight);
+  ctx.fillStyle=color;
+  ctx.textAlign=align||'left';
+  ctx.textBaseline='middle';
+  ctx.fillText(t,x,y);
 }
-function fitText(t,max,size,weight='800'){
-  let s=size;
-  while(s>18){
-    ctx.font=`${weight} ${s}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
-    if(ctx.measureText(t).width<=max)return s;
-    s--;
+
+// Manual letter-spacing. ctx.letterSpacing is not available on older iOS
+// Safari, so uppercase label tracking is drawn character by character.
+function measureSpaced(t,size,weight,sp){
+  setFont(size,weight);
+  const chars=[...t];
+  let w=0;
+  for(const ch of chars) w+=ctx.measureText(ch).width;
+  return w+sp*Math.max(0,chars.length-1);
+}
+
+function textSpaced(t,x,y,size,weight,color,align,sp){
+  setFont(size,weight);
+  const chars=[...t];
+  const w=measureSpaced(t,size,weight,sp);
+  let sx = align==='center' ? x-w/2 : align==='right' ? x-w : x;
+  ctx.fillStyle=color;
+  ctx.textAlign='left';
+  ctx.textBaseline='middle';
+  for(const ch of chars){
+    ctx.fillText(ch,sx,y);
+    sx+=ctx.measureText(ch).width+sp;
   }
+  return w;
+}
+
+function fitText(t,maxW,size,weight,min){
+  let s=size;
+  const floor=min||12;
+  while(s>floor && measure(t,s,weight)>maxW) s--;
   return s;
 }
-function iconGoal(x,y,s=16){
-  // Clean football icon with no white circular background.
-  // Draw directly on the transparent canvas so the ball itself is the only mark.
+
+// Football icon: drawn straight onto the background with no white disc behind it.
+function iconBall(x,y,s){
   ctx.save();
-  ctx.translate(x,y);
-  ctx.font=`${Math.round(s*1.9)}px Arial`;
+  ctx.font=`${Math.round(s*1.95)}px ${FONT}`;
   ctx.textAlign='center';
   ctx.textBaseline='middle';
-  ctx.fillStyle='#f4f7f5';
-  ctx.shadowColor='rgba(0,0,0,.35)';
-  ctx.shadowBlur=3;
-  ctx.fillText('⚽',0,1);
+  ctx.shadowColor='rgba(0,0,0,.45)';
+  ctx.shadowBlur=5;
+  ctx.fillStyle='#ffffff';
+  ctx.fillText('⚽',x,y+1);
   ctx.restore();
 }
-function iconAssist(x,y){
-  roundRect(ctx,x-16,y-16,32,32,7);ctx.fillStyle='#f04444';ctx.fill();
-  text('A',x,y,20,'950','#fff','center');
-}
-function iconOpp(x,y,r=16){
-  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle='#0a0a0a';ctx.fill();
-  ctx.strokeStyle='#737979';ctx.lineWidth=2;ctx.stroke();
-  ctx.beginPath();ctx.arc(x,y,r*.42,0,Math.PI*2);ctx.fillStyle='#202525';ctx.fill();
-}
 
-function draw(d){
-  ctx.clearRect(0,0,1080,1920);
-  // background
-  const bg=ctx.createLinearGradient(0,0,0,1920);bg.addColorStop(0,'#101818');bg.addColorStop(.48,'#060909');bg.addColorStop(1,'#030404');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1920);
-  const glow=ctx.createRadialGradient(540,40,10,540,40,720);glow.addColorStop(0,'rgba(57,230,110,.22)');glow.addColorStop(1,'rgba(57,230,110,0)');
-  ctx.fillStyle=glow;ctx.fillRect(0,0,1080,900);
-  // diagonal accents
-  ctx.save();ctx.globalAlpha=.18;ctx.fillStyle='#43f27b';
-  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(180,0);ctx.lineTo(0,180);ctx.closePath();ctx.fill();
-  ctx.beginPath();ctx.moveTo(1080,1740);ctx.lineTo(1080,1920);ctx.lineTo(900,1920);ctx.closePath();ctx.fill();
-  ctx.restore();
+/* ============================ DRAWING ============================ */
 
-  text('MATCH SUMMARY',540,62,24,'900','#d5dddd','center');
-  ctx.strokeStyle='#384040';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(310,94);ctx.lineTo(770,94);ctx.stroke();
-  text(d.hs>d.as?'WIN':d.hs<d.as?'LOSS':'DRAW',540,130,18,'900',d.hs>=d.as?'#5ced83':'#ff6b6b','center');
-
-  // teams / score
-  if(d.matchday) text(d.matchday.toUpperCase(),540,92,18,'900','#b9c5bf','center');
-  text(d.home.toUpperCase(),235,222,fitText(d.home.toUpperCase(),330,46,'950'),'950','#43f27b','center');
-  text(d.away.toUpperCase(),845,222,fitText(d.away.toUpperCase(),330,46,'950'),'950','#e9eeee','center');
-  text(String(d.hs),445,210,112,'950','#ffffff','center');
-  text('-',540,210,76,'800','#697272','center');
-  text(String(d.as),635,210,112,'950','#ffffff','center');
-  text('FINAL',540,276,15,'900','#909a96','center');
-
-  // two-sided timeline: home events on the LEFT, opponent events on the RIGHT
-  const top=330, bottom=1375;
-  box(48,top,984,bottom-top,34,'rgba(5,12,12,.86)','#263030');
-  text('EVENT TIMELINE',540,374,19,'950','#f0f3f1','center');
-  text(d.home.toUpperCase(),300,397,10,'900','#5bf58d','center');
-  text(d.away.toUpperCase(),780,397,10,'900','#8d9893','center');
-  ctx.strokeStyle='#303939';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(75,404);ctx.lineTo(1005,404);ctx.stroke();
-
-  const visibleEvents=d.events.filter(e=>e.type!=='assist' && e.type!=='player');
-  const normal=visibleEvents.filter(e=>!e.et), extra=visibleEvents.filter(e=>e.et);
-  const totalRows=visibleEvents.length + (extra.length?1:0);
-  const available=bottom-420-38;
-  const rowH=Math.min(78,Math.max(64,available/totalRows));
-  let y=432;
-
-  // Build a running score from the actual event data.
-  // This is deliberately independent of the final score in the header, so
-  // any match score/event sequence entered in the same format will work.
-  let runningHome = 0;
-  let runningAway = 0;
-  const scoreAfter = new Map();
-
-  d.events.forEach(ev => {
-    if(ev.type === 'goal'){
-      runningHome += 1;
-      scoreAfter.set(ev, `${runningHome}-${runningAway}`);
-    } else if(ev.type === 'opp'){
-      runningAway += 1;
-      scoreAfter.set(ev, `${runningHome}-${runningAway}`);
-    }
-  });
-  function eventRow(e){
-    const mine = e.type !== 'opp';
-    const col = mine ? '#43f27b' : '#f3f6f4';
-
-    // Centre spine. Every goal row gets the score immediately after that
-    // goal; assist-only rows keep the normal event dot.
-    const isGoalRow = e.type === 'goal' || e.type === 'opp';
-    if(isGoalRow){
-      const score = scoreAfter.get(e) || '';
-      box(500,y-18,80,36,12,
-          mine ? '#0b1710' : '#101414',
-          mine ? '#43f27b' : '#66736d');
-      text(score,540,y,17,'950','#f3f6f4','center');
-    }else{
-      ctx.beginPath();
-      ctx.arc(540, y, 6, 0, Math.PI*2);
-      ctx.fillStyle = mine ? '#4df58a' : '#87918d';
-      ctx.fill();
-    }
-
-    ctx.strokeStyle = '#34423d';
-    ctx.lineWidth = 2;
-    if(y + rowH < bottom - 15){
-      ctx.beginPath();
-      ctx.moveTo(540, y + 8);
-      ctx.lineTo(540, y + rowH - 8);
-      ctx.stroke();
-    }
-
-    // Fixed goal/minute columns. The text is positioned relative to the
-    // football so every home row reads towards the centre and every opponent
-    // row reads away from the centre.
-    const HOME_GOAL_X = 455;
-    const HOME_MIN_X  = 398;
-    const OPP_GOAL_X  = 625;
-    const OPP_MIN_X   = 682;
-
-    function measure(str,size,weight='850'){
-      ctx.font=`${weight} ${size}px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif`;
-      return ctx.measureText(str).width;
-    }
-
-    if(e.type==='red'){
-      // Red card: neutral centre score remains unchanged, with a clear red card
-      // marker and player/minute information on the appropriate side.
-      const red='#ff4d5f';
-      const redDark='#2a0b10';
-
-      if(e.isOpponent){
-        box(585,y-19,34,38,10,redDark,red);
-        text('🟥',602,y,17,'900','#ffffff','center');
-        box(628,y-19,72,38,12,'#101414','#5d6964');
-        text(e.displayMinute||`${e.minute}’`,664,y,17,'950','#f3f6f4','center');
-        const nameSize=fitText(e.player,300,18,'850');
-        text(e.player,715,y,nameSize,'850','#eef2f0','left');
-        ctx.strokeStyle='#3a292c';
-        ctx.beginPath();ctx.moveTo(548,y);ctx.lineTo(575,y);ctx.stroke();
-        const nameRight=715+measure(e.player,nameSize,'850')+12;
-        if(nameRight<1002){
-          ctx.beginPath();ctx.moveTo(nameRight,y);ctx.lineTo(1002,y);ctx.stroke();
-        }
-      }else{
-        const nameSize=fitText(e.player,170,18,'900');
-        const nameLeft=365-measure(e.player,nameSize,'900');
-        text(e.player,365,y,nameSize,'900','#f3f6f4','right');
-        box(382,y-19,72,38,12,'#101414','#5d6964');
-        text(e.displayMinute||`${e.minute}’`,418,y,17,'950','#f3f6f4','center');
-        box(462,y-19,34,38,10,redDark,red);
-        text('🟥',479,y,17,'900','#ffffff','center');
-        ctx.strokeStyle='#3a292c';
-        if(nameLeft-14>78){
-          ctx.beginPath();ctx.moveTo(78,y);ctx.lineTo(nameLeft-14,y);ctx.stroke();
-        }
-        ctx.beginPath();ctx.moveTo(500,y);ctx.lineTo(532,y);ctx.stroke();
-      }
-      y += rowH;
-      return;
-    }
-
-    if(mine){
-      let assistName='';
-      if(e.type==='goal'){
-        const assist=d.events.find(a =>
-          a.type==='assist' &&
-          a.minute===e.minute &&
-          a.et===e.et
-        );
-        assistName=assist ? assist.player : (e.autoAiAssist ? 'AI' : '');
-      }
-
-      if(e.type==='goal'){
-        /*
-          HOME ORDER:
-          (Assist 🅰️) Scorer 25' ⚽️
-
-          Everything is right-aligned toward the fixed football.
-          The football is the visual anchor; the entire text group ends
-          immediately before it.
-        */
-        const goalX=HOME_GOAL_X;
-        const minX=HOME_MIN_X;
-        const iconGap=12;
-        const minuteGap=10;
-        const scorerGap=11;
-        const assistGap=10;
-
-        let scorerSize=22;
-        while(scorerSize>15 && measure(e.player,scorerSize,'950')>180) scorerSize--;
-
-        let assistSize=14;
-        if(assistName){
-          while(assistSize>10 && measure(`(${assistName} 🅰️)`,assistSize,'800')>165) assistSize--;
-        }
-
-        const minuteW=76;
-        const scorerW=measure(e.player,scorerSize,'950');
-        const assistW=assistName ? measure(`(${assistName} 🅰️)`,assistSize,'800') : 0;
-
-        // Draw from right to left so everything is anchored to the goal.
-        const iconLeft=goalX-17;
-        const minuteRight=iconLeft-iconGap;
-        const minuteLeft=minuteRight-minuteW;
-        const scorerRight=minuteLeft-minuteGap;
-        const scorerLeft=scorerRight-scorerW;
-        const assistRight=scorerLeft-scorerGap;
-        const assistLeft=assistRight-assistW;
-
-        // Assist bracket: muted, clearly distinct, no box.
-        if(assistName){
-          text(`(${assistName} 🅰️)`,assistRight,y,assistSize,'800','#d0d7d3','right');
-        }
-
-        // Scorer remains the strongest visual element.
-        text(e.player,scorerRight,y,scorerSize,'950',col,'right');
-
-        // Fixed minute pill.
-        box(minuteLeft,y-20,minuteW,40,13,'#0b1710','#43f27b');
-        text(`${e.displayMinute || `${e.minute}’`}`,minuteLeft+minuteW/2,y,18,'950','#e0f6e6','center');
-
-        // Fixed football.
-        iconGoal(goalX,y,16);
-
-        // Connector stops at the outer edge of the complete group.
-        ctx.strokeStyle='#34423d';
-        ctx.beginPath();
-        ctx.moveTo(78,y);
-        ctx.lineTo(Math.max(78,assistName ? assistLeft-14 : scorerLeft-14),y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(goalX+22,y);
-        ctx.lineTo(494,y);
-        ctx.stroke();
-
-      }else{
-        // Unmatched assist fallback uses the same bracket treatment.
-        const label=`(${e.player} 🅰️)`;
-        let size=15;
-        while(size>11 && measure(label,size,'800')>190) size--;
-        text(label,370,y,size,'800','#d0d7d3','right');
-
-        ctx.strokeStyle='#34423d';
-        ctx.beginPath();ctx.moveTo(78,y);ctx.lineTo(350,y);ctx.stroke();
-        ctx.beginPath();ctx.moveTo(390,y);ctx.lineTo(532,y);ctx.stroke();
-      }
-
-    }else{
-      /*
-        OPPONENT ORDER:
-        ⚽️ 22' Opponent
-
-        The opponent group starts at the fixed football and is left-aligned
-        towards the outside of the right half.
-      */
-      const goalX=OPP_GOAL_X;
-      const minX=OPP_MIN_X;
-      const iconGap=12;
-      const minuteGap=12;
-
-      let nameSize=22;
-      while(nameSize>15 && measure(e.player,nameSize,'850')>230) nameSize--;
-
-      const minuteW=76;
-      const nameLeft=minX+minuteW/2+minuteGap+minuteW/2;
-      // Equivalent to: minute right + gap, kept explicit for readability.
-      const minuteLeft=minX-minuteW/2;
-      const nameStart=minuteLeft+minuteW+minuteGap;
-
-      // Football first.
-      iconGoal(goalX,y,16);
-
-      // Minute follows the football.
-      box(minuteLeft,y-20,minuteW,40,13,'#0c1010','#4d5753');
-      text(`${e.displayMinute || `${e.minute}’`}`,minX,y,18,'950','#f1f4f2','center');
-
-      // Opponent name is LEFT-aligned from the minute, towards the right edge.
-      text(e.player,nameStart,y,nameSize,'850','#f2f5f3','left');
-
-      ctx.strokeStyle='#34423d';
-      ctx.beginPath();ctx.moveTo(586,y);ctx.lineTo(goalX-22,y);ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(nameStart+measure(e.player,nameSize,'850')+12,y);
-      ctx.lineTo(1002,y);
-      ctx.stroke();
-    }
-
-    y += rowH;
-  }
-  normal.forEach(eventRow);
-  if(extra.length){
-    y+=4;
-    ctx.strokeStyle='#495050';ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(82,y-18);ctx.lineTo(998,y-18);ctx.stroke();ctx.setLineDash([]);
-    text('EXTRA TIME',540,y+3,15,'950','#9aa2a2','center');
-    y+=42;
-    extra.forEach(eventRow);
-  }
-
-  // player stats: only named non-opponent players, with their goals and assists
-  const statsTop=1410;
-  text('PLAYER STATS',540,statsTop,19,'950','#f0f3f1','center');
-  text('ASSISTS SHOWN WITH SCORERS',540,1430,11,'800','#aebbb5','center');
-
-  const contributors={};
+function collectPlayers(d){
   const isOpponentPlayer = name =>
     !!name && (name.toLowerCase()===d.away.toLowerCase() || name.toLowerCase()==='opponent');
 
-  // First register EVERY named home player from the input, including players
-  // who have no events and therefore have 0 goals / 0 assists.
+  const stats={};
+  // Register every named home player, including those with no events.
   d.events.forEach(e=>{
     if(e.type==='opp') return;
     if(e.player==='AI') return;
     if(isOpponentPlayer(e.player)) return;
-    if(e.player) contributors[e.player] ||= {g:0,a:0};
+    if(e.player) stats[e.player] ||= {g:0,a:0};
   });
-
-  // Then add their actual contributions.
+  // Then count contributions.
   d.events.forEach(e=>{
     if(e.type==='opp' || e.player==='AI' || e.type==='player') return;
     if(isOpponentPlayer(e.player)) return;
-    contributors[e.player] ||= {g:0,a:0};
-
-    if(e.type==='goal'){
-      contributors[e.player].g++;
-    }else if(e.type==='assist'){
-      contributors[e.player].a++;
-    }
-  });
-  const names=Object.entries(contributors);
-  const count=Math.max(1,names.length);
-  const gap=14;
-  const cardW=Math.min(310,(984-gap*(Math.min(count,3)-1))/Math.min(count,3));
-  const shown=names.slice(0,3);
-  const totalW=cardW*shown.length+gap*Math.max(0,shown.length-1);
-  const startX=(1080-totalW)/2;
-
-  shown.forEach(([name,v],i)=>{
-    const x=startX+i*(cardW+gap);
-    box(x,1465,cardW,180,22,'#090d0c','#30403a');
-    text(name.toUpperCase(),x+cardW/2,1508,fitText(name.toUpperCase(),cardW-28,21,'950'),'950','#4de47a','center');
-    text(String(v.g),x+cardW*.36,1570,48,'950','#fff','center');
-    text(String(v.a),x+cardW*.64,1570,48,'950','#fff','center');
-    text('GOALS',x+cardW*.36,1612,11,'950','#7f8989','center');
-    text('ASSISTS',x+cardW*.64,1612,11,'950','#7f8989','center');
-    text('⚽',x+cardW*.36-30,1570,20,'900','#fff','center');
-    text('A',x+cardW*.64-30,1570,16,'950','#f04444','center');
+    stats[e.player] ||= {g:0,a:0};
+    if(e.type==='goal') stats[e.player].g++;
+    else if(e.type==='assist') stats[e.player].a++;
   });
 
-  if(names.length>3){
-    text(`+ ${names.length-3} MORE`,540,1650,12,'900','#7b8585','center');
-  }
-
-  // footer
-  text('MATCH GRAPHIC',540,1850,13,'900','#687272','center');
-  ctx.strokeStyle='#34403a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(350,1875);ctx.lineTo(730,1875);ctx.stroke();
-  text('9 : 16',540,1905,12,'900','#4f5a5a','center');
+  return Object.entries(stats)
+    .map(([name,v])=>({name,g:v.g,a:v.a}))
+    .sort((p,q)=>(q.g-p.g)||(q.a-p.a)||p.name.localeCompare(q.name));
 }
 
+function draw(d){
+  const W=1080,H=1920;
+  ctx.clearRect(0,0,W,H);
+
+  /* ---- background ---- */
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0e1c15');
+  bg.addColorStop(.46,'#070d0a');
+  bg.addColorStop(1,'#040706');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,W,H);
+
+  const glow=ctx.createRadialGradient(540,-40,20,540,-40,820);
+  glow.addColorStop(0,'rgba(62,232,127,.22)');
+  glow.addColorStop(1,'rgba(62,232,127,0)');
+  ctx.fillStyle=glow;
+  ctx.fillRect(0,0,W,940);
+
+  ctx.save();
+  ctx.globalAlpha=.15;
+  ctx.fillStyle=C.green;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(210,0);ctx.lineTo(0,210);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(W,H);ctx.lineTo(W,H-210);ctx.lineTo(W-210,H);ctx.closePath();ctx.fill();
+  ctx.restore();
+
+  /* ---- header ---- */
+  const md=(d.matchday||'').trim().toUpperCase();
+  if(md){
+    const w=measureSpaced(md,21,'900',3.5)+56;
+    box(540-w/2,50,w,46,23,hexA(C.green,.10),hexA(C.green,.55),2);
+    textSpaced(md,540,73,21,'900',C.green,'center',3.5);
+  }else{
+    textSpaced('MATCH SUMMARY',540,73,21,'900',C.text2,'center',3.5);
+  }
+
+  const scoreY=203;
+  const homeName=d.home.toUpperCase();
+  const awayName=d.away.toUpperCase();
+
+  text(String(d.hs),452,scoreY,110,'950',C.text,'center');
+  text('–',540,scoreY-6,50,'700',C.text3,'center');
+  text(String(d.as),628,scoreY,110,'950',C.text,'center');
+
+  text(homeName,222,scoreY,fitText(homeName,336,44,'950',20),'950',C.green,'center');
+  text(awayName,858,scoreY,fitText(awayName,336,44,'950',20),'950',C.text,'center');
+
+  const resLabel = d.hs>d.as?'WIN' : d.hs<d.as?'LOSS' : 'DRAW';
+  const resColor = d.hs>d.as?C.green : d.hs<d.as?C.red : C.amber;
+  const rw=measureSpaced(resLabel,19,'900',4)+58;
+  box(540-rw/2,275,rw,44,22,hexA(resColor,.13),hexA(resColor,.6),2);
+  textSpaced(resLabel,540,297,19,'900',resColor,'center',4);
+
+  /* ---- adaptive vertical layout ----
+     The timeline panel grows with its content up to the space available, and
+     the timeline + stats group is centred as a whole. A three-event match
+     therefore gets a snug panel rather than a tall empty box, and a
+     sixteen-event match still fits without overflowing. */
+  const contentTop=352;
+  const contentBottom=1838;
+  const availContent=contentBottom-contentTop;
+
+  const players=collectPlayers(d);
+  const pCount=players.length;
+  const perRow = pCount<=3 ? Math.max(1,pCount) : (pCount===4 ? 2 : 3);
+  const statRows = pCount ? Math.ceil(pCount/perRow) : 0;
+  const cardH = statRows>=4?108 : statRows===3?126 : statRows===2?142 : 156;
+  const statsTitleH=58;
+  const cardGap=14;
+  const statsH = pCount ? statsTitleH + statRows*cardH + (statRows-1)*cardGap : 0;
+  const blockGap = pCount ? 26 : 0;
+
+  const timelineAvail = availContent - statsH - blockGap;
+  const visibleCount = d.events.filter(e=>e.type!=='assist' && e.type!=='player').length;
+  const hasExtra = d.events.some(e=>e.et && e.type!=='assist' && e.type!=='player');
+  const naturalH = TL_HEAD + ROW_MAX*Math.max(1,visibleCount) + (hasExtra?ET_BLOCK:0) + TL_FOOT;
+  const timelineH = Math.max(300,Math.min(timelineAvail,naturalH));
+
+  const totalBlock = timelineH + blockGap + statsH;
+  // Biased slightly above centre: TikTok and Instagram overlay captions and
+  // action buttons across the lower part of a 9:16 frame.
+  const startY = contentTop + Math.max(0,(availContent-totalBlock)*0.4);
+
+  drawTimeline(d,startY,timelineH);
+
+  if(pCount){
+    drawStats(players,startY+timelineH+blockGap,perRow,statRows,cardH,cardGap,statsTitleH);
+  }
+
+  /* ---- footer ---- */
+  ctx.strokeStyle=C.line;
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(430,1866);ctx.lineTo(650,1866);ctx.stroke();
+  textSpaced('MATCH GRAPHIC · 9:16',540,1892,12,'800',C.text3,'center',3);
+}
+
+function drawTimeline(d,top,height){
+  const bottom=top+height;
+
+  box(48,top,984,height,30,C.panel,C.line,2);
+
+  textSpaced('EVENT TIMELINE',540,top+40,19,'950',C.text,'center',3);
+
+  const homeLabel=d.home.toUpperCase();
+  const awayLabel=d.away.toUpperCase();
+  textSpaced(homeLabel,300,top+70,11,'900',C.green,'center',1.6);
+  textSpaced(awayLabel,780,top+70,11,'900',C.text2,'center',1.6);
+
+  ctx.strokeStyle=C.line;
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(78,top+88);ctx.lineTo(1002,top+88);ctx.stroke();
+
+  const visible=d.events.filter(e=>e.type!=='assist' && e.type!=='player');
+  const normal=visible.filter(e=>!e.et);
+  const extra=visible.filter(e=>e.et);
+
+  if(!visible.length){
+    text('No events recorded',540,top+height/2,20,'800',C.text3,'center');
+    return;
+  }
+
+  const eventsTop=top+TL_HEAD;
+  const eventsBottom=bottom-TL_FOOT;
+  const available=eventsBottom-eventsTop;
+  const etBlock=extra.length?ET_BLOCK:0;
+
+  const rowH=clamp((available-etBlock)/visible.length,ROW_MIN,ROW_MAX);
+  const used=rowH*visible.length+etBlock;
+  let y=eventsTop+Math.max(0,(available-used)/2)+rowH/2;
+
+  // Type sizes track row height so dense matches stay inside the panel.
+  const S={
+    name:clamp(Math.round(rowH*0.30),13,23),
+    minute:clamp(Math.round(rowH*0.235),11,18),
+    score:clamp(Math.round(rowH*0.225),11,17),
+    assist:clamp(Math.round(rowH*0.195),9,14),
+    ball:clamp(Math.round(rowH*0.225),10,16),
+    pillH:clamp(Math.round(rowH*0.54),26,40),
+    pillW:clamp(Math.round(rowH*1.02),58,78)
+  };
+
+  // Running score, derived from the events themselves rather than the header.
+  let rh=0,ra=0;
+  const scoreAfter=new Map();
+  d.events.forEach(ev=>{
+    if(ev.type==='goal'){rh++;scoreAfter.set(ev,`${rh}-${ra}`);}
+    else if(ev.type==='opp'){ra++;scoreAfter.set(ev,`${rh}-${ra}`);}
+  });
+
+  // Fixed anchor columns keep every football on a perfect vertical line.
+  const HOME_BALL_X=455;
+  const OPP_BALL_X=625;
+  const BALL_HALF=17;
+  const GAP=12;
+
+  function row(e){
+    const mine = e.type!=='opp';
+    const pw=S.pillW, ph=S.pillH;
+
+    /* centre spine */
+    const isGoalRow = e.type==='goal' || e.type==='opp';
+    if(isGoalRow){
+      const sw=76, sh=clamp(ph-2,24,38);
+      box(540-sw/2,y-sh/2,sw,sh,11,
+        mine?hexA(C.green,.12):'#141c19',
+        mine?hexA(C.green,.75):C.oppStroke,2);
+      text(scoreAfter.get(e)||'',540,y,S.score,'950',C.text,'center');
+    }else{
+      ctx.beginPath();
+      ctx.arc(540,y,5.5,0,Math.PI*2);
+      ctx.fillStyle=mine?C.green:C.text3;
+      ctx.fill();
+    }
+
+    // vertical connector to the next row
+    if(y+rowH<bottom-20){
+      ctx.strokeStyle=C.line2;
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(540,y+ph/2+3);
+      ctx.lineTo(540,y+rowH-ph/2-3);
+      ctx.stroke();
+    }
+
+    /* ---- red card ---- */
+    if(e.type==='red'){
+      const cs=clamp(ph-6,22,34);
+      if(e.isOpponent){
+        box(OPP_BALL_X-cs/2,y-cs/2,cs,cs,7,hexA(C.red,.2),C.red,2);
+        text('🟥',OPP_BALL_X,y,Math.round(cs*0.52),'900','#fff','center');
+        const pl=OPP_BALL_X+BALL_HALF+GAP;
+        box(pl,y-ph/2,pw,ph,12,C.pillOpp,C.oppStroke,2);
+        text(e.displayMinute||`${e.minute}’`,pl+pw/2,y,S.minute,'950',C.text,'center');
+        const ns=fitText(e.player,250,S.name,'850',12);
+        const nx=pl+pw+14;
+        text(e.player,nx,y,ns,'850',C.text,'left');
+        ctx.strokeStyle=C.line2;
+        ctx.beginPath();ctx.moveTo(584,y);ctx.lineTo(OPP_BALL_X-cs/2-10,y);ctx.stroke();
+        const ne=nx+measure(e.player,ns,'850')+14;
+        if(ne<1002){ctx.beginPath();ctx.moveTo(ne,y);ctx.lineTo(1002,y);ctx.stroke();}
+      }else{
+        box(HOME_BALL_X-cs/2,y-cs/2,cs,cs,7,hexA(C.red,.2),C.red,2);
+        text('🟥',HOME_BALL_X,y,Math.round(cs*0.52),'900','#fff','center');
+        const pr=HOME_BALL_X-BALL_HALF-GAP;
+        const pl=pr-pw;
+        box(pl,y-ph/2,pw,ph,12,C.pillOpp,C.oppStroke,2);
+        text(e.displayMinute||`${e.minute}’`,pl+pw/2,y,S.minute,'950',C.text,'center');
+        const ns=fitText(e.player,180,S.name,'900',12);
+        const nr=pl-14;
+        text(e.player,nr,y,ns,'900',C.text,'right');
+        ctx.strokeStyle=C.line2;
+        const nl=nr-measure(e.player,ns,'900')-14;
+        if(nl>78){ctx.beginPath();ctx.moveTo(78,y);ctx.lineTo(nl,y);ctx.stroke();}
+        ctx.beginPath();ctx.moveTo(HOME_BALL_X+cs/2+10,y);ctx.lineTo(496,y);ctx.stroke();
+      }
+      y+=rowH;
+      return;
+    }
+
+    if(mine){
+      /* HOME:  (Assist 🅰️) Scorer 25’ ⚽️
+         Everything is right-aligned into the fixed football. */
+      if(e.type==='goal'){
+        let assistName='';
+        const assist=d.events.find(a=>
+          a.type==='assist' && a.minute===e.minute && a.et===e.et);
+        assistName = assist ? assist.player : (e.autoAiAssist ? 'AI' : '');
+
+        const pr=HOME_BALL_X-BALL_HALF-GAP;
+        const pl=pr-pw;
+
+        const scorerSize=fitText(e.player,182,S.name,'950',12);
+        const scorerW=measure(e.player,scorerSize,'950');
+        const scorerRight=pl-12;
+        const scorerLeft=scorerRight-scorerW;
+
+        let assistW=0, assistLeft=scorerLeft;
+        if(assistName){
+          const label=`(${assistName} 🅰️)`;
+          const aSize=fitText(label,168,S.assist,'800',9);
+          assistW=measure(label,aSize,'800');
+          const assistRight=scorerLeft-12;
+          assistLeft=assistRight-assistW;
+          text(label,assistRight,y,aSize,'800',C.text2,'right');
+        }
+
+        text(e.player,scorerRight,y,scorerSize,'950',C.green,'right');
+
+        box(pl,y-ph/2,pw,ph,12,C.pillHome,hexA(C.green,.72),2);
+        text(e.displayMinute||`${e.minute}’`,pl+pw/2,y,S.minute,'950',C.greenInk,'center');
+
+        iconBall(HOME_BALL_X,y,S.ball);
+
+        ctx.strokeStyle=C.line2;
+        ctx.lineWidth=2;
+        const groupLeft=(assistName?assistLeft:scorerLeft)-14;
+        if(groupLeft>78){ctx.beginPath();ctx.moveTo(78,y);ctx.lineTo(groupLeft,y);ctx.stroke();}
+        ctx.beginPath();ctx.moveTo(HOME_BALL_X+BALL_HALF+6,y);ctx.lineTo(496,y);ctx.stroke();
+
+      }else{
+        // Assist with no matching goal — same bracket treatment, no box.
+        const label=`(${e.player} 🅰️)`;
+        const s=fitText(label,200,S.assist+1,'800',10);
+        text(label,HOME_BALL_X-30,y,s,'800',C.text2,'right');
+        ctx.strokeStyle=C.line2;
+        ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(496,y);ctx.lineTo(520,y);ctx.stroke();
+      }
+
+    }else{
+      /* OPPONENT:  ⚽️ 22’ Opponent
+         Left-aligned outward from the fixed football. */
+      iconBall(OPP_BALL_X,y,S.ball);
+
+      const pl=OPP_BALL_X+BALL_HALF+GAP;
+      box(pl,y-ph/2,pw,ph,12,C.pillOpp,C.oppStroke,2);
+      text(e.displayMinute||`${e.minute}’`,pl+pw/2,y,S.minute,'950',C.text,'center');
+
+      const ns=fitText(e.player,240,S.name,'850',12);
+      const nx=pl+pw+14;
+      text(e.player,nx,y,ns,'850',C.text,'left');
+
+      ctx.strokeStyle=C.line2;
+      ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(584,y);ctx.lineTo(OPP_BALL_X-BALL_HALF-6,y);ctx.stroke();
+      const ne=nx+measure(e.player,ns,'850')+14;
+      if(ne<1002){ctx.beginPath();ctx.moveTo(ne,y);ctx.lineTo(1002,y);ctx.stroke();}
+    }
+
+    y+=rowH;
+  }
+
+  normal.forEach(row);
+
+  if(extra.length){
+    const dy=y-rowH/2+10;
+    ctx.strokeStyle=C.line2;
+    ctx.lineWidth=2;
+    ctx.setLineDash([9,9]);
+    ctx.beginPath();ctx.moveTo(86,dy);ctx.lineTo(430,dy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(650,dy);ctx.lineTo(994,dy);ctx.stroke();
+    ctx.setLineDash([]);
+    textSpaced('EXTRA TIME',540,dy,14,'950',C.text2,'center',3);
+    y+=etBlock;
+    extra.forEach(row);
+  }
+}
+
+function drawStats(players,top,perRow,rows,cardH,gap,titleH){
+  textSpaced('PLAYER STATS',540,top+20,19,'950',C.text,'center',3);
+  textSpaced('GOALS & ASSISTS',540,top+42,11,'800',C.text3,'center',2.4);
+
+  const cardW=Math.min(322,(984-gap*(perRow-1))/perRow);
+
+  const nameS = cardH>=156?21 : cardH>=142?20 : cardH>=126?18 : 16;
+  const numS  = cardH>=156?46 : cardH>=142?42 : cardH>=126?36 : 30;
+  const labS  = cardH>=126?11 : 10;
+  const markS = cardH>=126?19 : 16;
+
+  for(let r=0;r<rows;r++){
+    const items=players.slice(r*perRow,(r+1)*perRow);
+    if(!items.length) continue;
+    const totalW=items.length*cardW+gap*(items.length-1);
+    const sx=(1080-totalW)/2;
+    const cy=top+titleH+r*(cardH+gap);
+
+    items.forEach((p,i)=>{
+      const x=sx+i*(cardW+gap);
+      box(x,cy,cardW,cardH,20,'rgba(9,16,13,.9)',C.line,2);
+
+      // green accent bar along the top edge of each card
+      ctx.save();
+      roundRect(x,cy,cardW,cardH,20);
+      ctx.clip();
+      ctx.fillStyle=hexA(C.green,.5);
+      ctx.fillRect(x,cy,cardW,3);
+      ctx.restore();
+
+      const nm=p.name.toUpperCase();
+      text(nm,x+cardW/2,cy+cardH*0.27,fitText(nm,cardW-28,nameS,'950',11),'950',C.green,'center');
+
+      const gx=x+cardW*0.34, ax=x+cardW*0.68;
+      const vy=cy+cardH*0.585;
+      const ly=cy+cardH*0.845;
+
+      text(String(p.g),gx+11,vy,numS,'950',C.text,'center');
+      text(String(p.a),ax+11,vy,numS,'950',C.text,'center');
+
+      text('⚽',gx-Math.round(numS*0.52),vy,markS,'900','#fff','center');
+      const bs=Math.round(markS*1.15);
+      box(ax-Math.round(numS*0.52)-bs/2,vy-bs/2,bs,bs,5,hexA(C.red,.9),null,0);
+      text('A',ax-Math.round(numS*0.52),vy,Math.round(bs*0.68),'950','#fff','center');
+
+      textSpaced('GOALS',gx,ly,labS,'900',C.text3,'center',1.6);
+      textSpaced('ASSISTS',ax,ly,labS,'900',C.text3,'center',1.6);
+    });
+  }
+}
+
+/* ============================ MATCH LOG ============================ */
+
+const LOG_KEY='mgb.matchLog.v1';
+
+function loadLog(){
+  try{
+    const v=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');
+    return Array.isArray(v)?v:[];
+  }catch(e){return [];}
+}
+
+function persistLog(list){
+  try{localStorage.setItem(LOG_KEY,JSON.stringify(list));}
+  catch(e){/* private mode / quota — the log just won't persist */}
+}
+
+function matchdayNumber(label){
+  const m=(label||'').match(/(\d+)/);
+  return m?Number(m[1]):null;
+}
+
+function sortLog(list){
+  return list.sort((a,b)=>{
+    const na=matchdayNumber(a.matchday), nb=matchdayNumber(b.matchday);
+    if(na!==null && nb!==null) return na-nb;
+    if(na!==null) return -1;
+    if(nb!==null) return 1;
+    return String(a.at).localeCompare(String(b.at));
+  });
+}
+
+function addToLog(d,raw){
+  const list=loadLog();
+  const entry={
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+    matchday:d.matchday||'',
+    home:d.home, away:d.away, hs:d.hs, as:d.as,
+    raw,
+    at:new Date().toISOString()
+  };
+  // Rebuilding a labelled matchday updates that entry rather than duplicating it.
+  const key=(d.matchday||'').trim().toLowerCase();
+  let idx=-1;
+  if(key) idx=list.findIndex(x=>(x.matchday||'').trim().toLowerCase()===key);
+  else idx=list.findIndex(x=>x.raw===raw);
+
+  if(idx>=0) list[idx]=entry; else list.push(entry);
+  persistLog(sortLog(list));
+  renderLog();
+}
+
+function deleteFromLog(id){
+  persistLog(loadLog().filter(x=>x.id!==id));
+  renderLog();
+}
+
+function renderLog(){
+  const list=sortLog(loadLog());
+  logList.textContent='';
+  logSummary.textContent='';
+
+  if(!list.length){
+    logSummary.hidden=true;
+    clearLogBtn.hidden=true;
+    const empty=document.createElement('div');
+    empty.className='log-empty';
+    empty.textContent='No matches yet. Build a graphic and it will be saved here.';
+    logList.appendChild(empty);
+    return;
+  }
+
+  clearLogBtn.hidden=false;
+  logSummary.hidden=false;
+
+  let w=0,dr=0,l=0,gf=0,ga=0;
+  list.forEach(m=>{
+    gf+=m.hs; ga+=m.as;
+    if(m.hs>m.as) w++; else if(m.hs<m.as) l++; else dr++;
+  });
+
+  const chips=[
+    ['Played',String(list.length),''],
+    ['Won',String(w),'win'],
+    ['Drawn',String(dr),''],
+    ['Lost',String(l),'loss'],
+    ['Scored',String(gf),''],
+    ['Conceded',String(ga),'']
+  ];
+  chips.forEach(([k,v,cls])=>{
+    const c=document.createElement('div');
+    c.className='chip';
+    const ke=document.createElement('span');
+    ke.className='k'; ke.textContent=k;
+    const ve=document.createElement('span');
+    ve.className='v'+(cls?' '+cls:''); ve.textContent=v;
+    c.append(ke,ve);
+    logSummary.appendChild(c);
+  });
+
+  list.forEach(m=>{
+    const item=document.createElement('div');
+    item.className='log-item';
+
+    const res=m.hs>m.as?'w':m.hs<m.as?'l':'d';
+    const badge=document.createElement('div');
+    badge.className='log-badge '+res;
+    badge.textContent=res.toUpperCase();
+
+    const main=document.createElement('div');
+    main.className='log-main';
+    const md=document.createElement('div');
+    md.className='log-md';
+    md.textContent=m.matchday||'Match';
+    const score=document.createElement('div');
+    score.className='log-score';
+    // textContent throughout: team names come from user input.
+    score.textContent=`${m.home} ${m.hs}–${m.as} ${m.away}`;
+    main.append(md,score);
+
+    const actions=document.createElement('div');
+    actions.className='log-actions';
+
+    const view=document.createElement('button');
+    view.type='button';
+    view.className='icon-btn';
+    view.title='Rebuild this match';
+    view.setAttribute('aria-label','Rebuild '+(m.matchday||'match'));
+    view.textContent='↻';
+    view.addEventListener('click',()=>{
+      data.value=m.raw;
+      build();
+    });
+
+    const del=document.createElement('button');
+    del.type='button';
+    del.className='icon-btn danger';
+    del.title='Delete from log';
+    del.setAttribute('aria-label','Delete '+(m.matchday||'match'));
+    del.textContent='✕';
+    del.addEventListener('click',()=>deleteFromLog(m.id));
+
+    actions.append(view,del);
+    item.append(badge,main,actions);
+    logList.appendChild(item);
+  });
+}
+
+/* ============================ UI WIRING ============================ */
+
 function openPackage(open){
-  graphicPreviewWrap.classList.toggle('open', open);
-  pkgSubtitle.textContent = open ? 'Tap to hide' : 'Tap to view';
+  preview.classList.toggle('open',open);
+  pkg.setAttribute('aria-expanded',open?'true':'false');
+  pkgSub.textContent=open?'Tap to hide':'Tap to view';
 }
 
 function resetInterface(){
   data.value='';
-  saveArea.classList.add('hidden');
-  previewWrap.classList.add('hidden');
-  pkg.classList.add('hidden');
+  outputPanel.hidden=true;
   openPackage(false);
-  draw({home:'Home',away:'Opponent',hs:0,as:0,events:[]});
 }
 
 function build(){
+  let d;
   try{
-    const d=parse(data.value);
-    draw(d);
-    saveArea.classList.remove('hidden');
-    previewWrap.classList.remove('hidden');
-    pkg.classList.remove('hidden');
-    openPackage(false);
-    pkg.scrollIntoView({behavior:'smooth',block:'start'});
-  }catch(err){alert(err.message)}
+    d=parse(data.value);
+  }catch(err){
+    alert(err.message);
+    return;
+  }
+  draw(d);
+  addToLog(d,data.value);
+  outputPanel.hidden=false;
+  openPackage(false);
+  pkg.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-async function save(){
+function save(){
   canvas.toBlob(async blob=>{
-    if(!blob){alert('Could not create the image.');return}
+    if(!blob){alert('Could not create the image.');return;}
     const file=new File([blob],'match-graphic-1080x1920.png',{type:'image/png'});
     let saved=false;
 
@@ -736,14 +1175,19 @@ async function save(){
         await navigator.share({title:'Match Graphic',files:[file]});
         saved=true;
       }catch(e){
-        if(e && e.name==='AbortError') return; // user cancelled the share sheet
+        // A cancelled share sheet must not wipe the user's pasted data.
+        if(e && e.name==='AbortError') return;
       }
     }
 
     if(!saved){
       const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.download='match-graphic-1080x1920.png';
-      document.body.appendChild(a);a.click();a.remove();
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='match-graphic-1080x1920.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),5000);
       saved=true;
     }
@@ -752,21 +1196,27 @@ async function save(){
   },'image/png');
 }
 
-document.getElementById('build').onclick=build;
-document.getElementById('save').onclick=save;
-pkg.onclick=()=>openPackage(!graphicPreviewWrap.classList.contains('open'));
-document.getElementById('sample').onclick=()=>{
-  data.value=SAMPLE;
-  saveArea.classList.add('hidden');
-  previewWrap.classList.add('hidden');
-  pkg.classList.add('hidden');
-  openPackage(false);
-  draw({home:'Home',away:'Opponent',hs:0,as:0,events:[]});
-};
-document.getElementById('clear').onclick=resetInterface;
+document.getElementById('build').addEventListener('click',build);
+document.getElementById('save').addEventListener('click',save);
+pkg.addEventListener('click',()=>openPackage(!preview.classList.contains('open')));
 
-// Initial placeholder
-draw({home:'Home',away:'Opponent',hs:0,as:0,events:[]});
+document.getElementById('sample').addEventListener('click',()=>{
+  data.value=SAMPLE;
+  outputPanel.hidden=true;
+  openPackage(false);
+  data.focus();
+});
+
+document.getElementById('clear').addEventListener('click',resetInterface);
+
+clearLogBtn.addEventListener('click',()=>{
+  if(confirm('Delete every match in the log? This cannot be undone.')){
+    persistLog([]);
+    renderLog();
+  }
+});
+
+renderLog();
 })();
 </script>
 </body>
