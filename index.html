@@ -236,42 +236,17 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
   background:rgba(62,232,127,.1);border:1px solid rgba(62,232,127,.35);
   color:var(--green);font-size:12px;font-weight:800;
 }
-.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
-.gallery-tile{
-  position:relative;
-  aspect-ratio:9/16;
-  border-radius:14px;
-  overflow:hidden;
-  border:1px solid var(--line);
-  background:var(--panel-3);
-  padding:0;cursor:pointer;
-  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+.export-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;font-size:12px;border-radius:9px;
+  background:#1a2723;color:var(--text);border:1px solid var(--line-2);
+  cursor:pointer;font-family:var(--font);font-weight:800;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
 }
-.gallery-tile:active{transform:scale(.96)}
-@media (hover:hover){
-  .gallery-tile:hover{transform:translateY(-3px);border-color:var(--green);box-shadow:0 14px 26px -14px rgba(0,0,0,.65)}
-}
-.gallery-thumb{width:100%;height:100%;object-fit:cover;display:block;background:var(--panel-3)}
-.gallery-badge{
-  position:absolute;top:8px;left:8px;
-  min-width:22px;height:22px;padding:0 5px;border-radius:7px;
-  display:grid;place-items:center;
-  font-size:10.5px;font-weight:900;
-  background:rgba(6,12,10,.78);backdrop-filter:blur(4px);
-  border:1px solid rgba(255,255,255,.14);
-}
-.gallery-badge.w{color:var(--green)}
-.gallery-badge.l{color:var(--red)}
-.gallery-badge.d{color:var(--amber)}
-.gallery-caption{
-  position:absolute;left:0;right:0;bottom:0;
-  display:flex;flex-direction:column;gap:1px;
-  padding:22px 9px 9px;
-  background:linear-gradient(to top,rgba(3,7,5,.92),rgba(3,7,5,0));
-  text-align:left;
-}
-.gallery-caption-md{font-size:8.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
-.gallery-caption-score{font-size:12.5px;font-weight:900;color:var(--text)}
+.export-btn:hover{background:#20302a;border-color:var(--green)}
+.export-btn:active{transform:scale(.96)}
+.export-btn:disabled{opacity:.6;cursor:not-allowed}
+.head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* ---------- lightbox ---------- */
 .lightbox{position:fixed;inset:0;z-index:1000}
@@ -451,13 +426,24 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
       <h2 class="panel-title">Graphic gallery</h2>
       <span id="galleryCount" class="panel-count" hidden></span>
     </div>
-    <div id="galleryGrid" class="gallery-grid"></div>
+    <button id="galleryOpenBtn" class="package" type="button" hidden>
+      <span class="package-icon">🖼️</span>
+      <span class="package-copy">
+        <span class="package-title">View graphic gallery</span>
+        <span class="package-sub" id="galleryOpenSub">Tap to browse</span>
+      </span>
+      <span class="package-chevron" aria-hidden="true">›</span>
+    </button>
+    <div id="galleryEmpty" class="empty-state" hidden></div>
   </section>
 
   <section class="panel stats-panel">
     <div class="panel-head">
       <h2 class="panel-title">Player stats</h2>
-      <span id="statsSubtitle" class="panel-sub-inline"></span>
+      <div class="head-actions">
+        <span id="statsSubtitle" class="panel-sub-inline"></span>
+        <button id="exportStatsBtn" class="export-btn" type="button" hidden>📤 Export image</button>
+      </div>
     </div>
     <div id="statsTable" class="stats-table"></div>
   </section>
@@ -465,7 +451,10 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
   <section class="panel log-panel">
     <div class="panel-head">
       <h2 class="panel-title">Match log</h2>
-      <button id="clearLog" class="btn ghost tiny" type="button" hidden>Clear all</button>
+      <div class="head-actions">
+        <button id="exportLogBtn" class="export-btn" type="button" hidden>📤 Export image</button>
+        <button id="clearLog" class="btn ghost tiny" type="button" hidden>Clear all</button>
+      </div>
     </div>
     <div id="logSummary" class="summary-chips" hidden></div>
     <div id="logList" class="log-list"></div>
@@ -537,11 +526,15 @@ const saveAllBtn=document.getElementById('saveAllBtn');
 const logList=document.getElementById('logList');
 const logSummary=document.getElementById('logSummary');
 const clearLogBtn=document.getElementById('clearLog');
+const exportLogBtn=document.getElementById('exportLogBtn');
 const mastheadStat=document.getElementById('mastheadStat');
-const galleryGrid=document.getElementById('galleryGrid');
+const galleryOpenBtn=document.getElementById('galleryOpenBtn');
+const galleryOpenSub=document.getElementById('galleryOpenSub');
+const galleryEmpty=document.getElementById('galleryEmpty');
 const galleryCount=document.getElementById('galleryCount');
 const statsTable=document.getElementById('statsTable');
 const statsSubtitle=document.getElementById('statsSubtitle');
+const exportStatsBtn=document.getElementById('exportStatsBtn');
 
 const lightbox=document.getElementById('lightbox');
 const lbBackdrop=document.getElementById('lbBackdrop');
@@ -886,11 +879,10 @@ function collectPlayers(d){
     .sort((p,q)=>(q.g-p.g)||(q.a-p.a)||p.name.localeCompare(q.name));
 }
 
-function draw(d){
+// Shared by draw() and the season export graphics, so every generated image
+// — a single match or a season summary — starts from the same backdrop.
+function paintBackground(){
   const W=1080,H=1920;
-  ctx.clearRect(0,0,W,H);
-
-  /* ---- background ---- */
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#0e1c15');
   bg.addColorStop(.46,'#070d0a');
@@ -910,6 +902,19 @@ function draw(d){
   ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(210,0);ctx.lineTo(0,210);ctx.closePath();ctx.fill();
   ctx.beginPath();ctx.moveTo(W,H);ctx.lineTo(W,H-210);ctx.lineTo(W-210,H);ctx.closePath();ctx.fill();
   ctx.restore();
+}
+
+function paintFooter(label){
+  ctx.strokeStyle=C.line;
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(430,1866);ctx.lineTo(650,1866);ctx.stroke();
+  textSpaced(label,540,1892,12,'800',C.text3,'center',3);
+}
+
+function draw(d){
+  const W=1080,H=1920;
+  ctx.clearRect(0,0,W,H);
+  paintBackground();
 
   /* ---- header ---- */
   const md=(d.matchday||'').trim().toUpperCase();
@@ -974,11 +979,7 @@ function draw(d){
     drawStats(players,startY+timelineH+blockGap,perRow,statRows,cardH,cardGap,statsTitleH);
   }
 
-  /* ---- footer ---- */
-  ctx.strokeStyle=C.line;
-  ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(430,1866);ctx.lineTo(650,1866);ctx.stroke();
-  textSpaced('MATCH GRAPHIC · 9:16',540,1892,12,'800',C.text3,'center',3);
+  paintFooter('MATCH GRAPHIC · 9:16');
 }
 
 function drawTimeline(d,top,height){
@@ -1269,6 +1270,327 @@ function filenameSlug(s){
   return (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 }
 
+// Points `ctx` at an arbitrary canvas and runs any draw function against it —
+// the same trick renderMatchToCanvas uses for a single match, generalised
+// for the season export graphics below.
+function renderToCanvas(targetCanvas,drawFn){
+  ctx=targetCanvas.getContext('2d');
+  drawFn();
+}
+
+function mostCommon(values){
+  const counts=new Map();
+  let best=null, bestCount=0;
+  values.forEach(v=>{
+    if(!v) return;
+    const c=(counts.get(v)||0)+1;
+    counts.set(v,c);
+    if(c>bestCount){ best=v; bestCount=c; }
+  });
+  return best;
+}
+
+/* ============================ SEASON EXPORT GRAPHICS ============================ */
+/* Shareable images for the site's two aggregate views — Player Stats and
+   Match log — built from the same match log data those panels already
+   render, using the same canvas primitives and 1080x1920 format as a
+   single match graphic. */
+
+function spotlightCard(x,y,w,h,label,name,value,valueLabel){
+  box(x,y,w,h,22,'rgba(9,16,13,.9)',C.line,2);
+  ctx.save();
+  roundRect(x,y,w,h,22);
+  ctx.clip();
+  ctx.fillStyle=hexA(C.green,.5);
+  ctx.fillRect(x,y,w,3);
+  ctx.restore();
+
+  textSpaced(label,x+w/2,y+34,11,'900',C.text3,'center',2);
+  const nm=name.toUpperCase();
+  text(nm,x+w/2,y+72,fitText(nm,w-32,24,'950',13),'950',C.green,'center');
+  text(String(value),x+w/2,y+h*0.66,56,'950',C.text,'center');
+  textSpaced(valueLabel,x+w/2,y+h-24,11,'900',C.text3,'center',1.6);
+}
+
+function drawPlayerStatsGraphic(){
+  const W=1080,H=1920;
+  ctx.clearRect(0,0,W,H);
+  paintBackground();
+
+  const rows=seasonStats();
+  const matches=loadLog();
+  const club=mostCommon(matches.map(m=>m.home));
+
+  const chip='SEASON STATS';
+  const cw=measureSpaced(chip,21,'900',3.5)+56;
+  box(540-cw/2,50,cw,46,23,hexA(C.green,.10),hexA(C.green,.55),2);
+  textSpaced(chip,540,73,21,'900',C.green,'center',3.5);
+
+  const clubLabel=(club||'PLAYER STATS').toUpperCase();
+  text(clubLabel,540,152,fitText(clubLabel,940,54,'950',26),'950',C.text,'center');
+  textSpaced(`${matches.length} MATCH${matches.length===1?'':'ES'} · ${rows.length} PLAYER${rows.length===1?'':'S'}`,
+    540,200,14,'800',C.text2,'center',2);
+
+  // A season with only 1-2 players has very little to list, so a leaderboard
+  // panel alone would leave a lot of empty frame no matter how it's sized.
+  // A fixed-height "Top Scorer / Top Assister" spotlight — real content, not
+  // padding — sits above the leaderboard, and the two blocks together are
+  // centred as one unit, the same technique draw() uses for timeline+stats.
+  const hasPlayers=rows.length>0;
+  const topScorer=hasPlayers?[...rows].sort((a,b)=>(b.g-a.g)||(b.a-a.a)||a.name.localeCompare(b.name))[0]:null;
+  const topAssister=hasPlayers?[...rows].sort((a,b)=>(b.a-a.a)||(b.g-a.g)||a.name.localeCompare(b.name))[0]:null;
+
+  const contentTop=230, contentBottom=1838;
+  const availContent=contentBottom-contentTop;
+  const SPOT_H=190, BLOCK_GAP=26;
+  const HEAD=112, FOOT=26;
+
+  const leaderboardAvailMax=availContent-(hasPlayers?SPOT_H+BLOCK_GAP:0);
+  // Cap how many rows we'll ever try to show at the smallest row height, so
+  // a very large squad degrades to "+ N more" instead of overflowing the panel.
+  const maxRowsEver=Math.max(1,Math.floor((leaderboardAvailMax-HEAD-FOOT)/ROW_MIN));
+  const overflow=rows.length>maxRowsEver;
+  const shown=overflow?rows.slice(0,Math.max(1,maxRowsEver-1)):rows;
+  const shownCount=Math.max(1,shown.length+(overflow?1:0));
+
+  const naturalH=HEAD+ROW_MAX*shownCount+FOOT;
+  const leaderboardH=Math.max(280,Math.min(leaderboardAvailMax,naturalH));
+
+  const totalBlock=(hasPlayers?SPOT_H+BLOCK_GAP:0)+leaderboardH;
+  // Unlike the per-match graphic, a sparse season (few players) has nowhere
+  // near enough content to fill the frame at any reasonable scale, so this
+  // starts right under the header rather than centring — any leftover space
+  // collects at the bottom, which social apps overlay with their own UI anyway.
+  const startY=contentTop+Math.max(0,(availContent-totalBlock)*0.08);
+
+  if(hasPlayers){
+    const cardW=(984-24)/2;
+    spotlightCard(48,startY,cardW,SPOT_H,'TOP SCORER',topScorer.name,topScorer.g,'GOALS');
+    spotlightCard(48+cardW+24,startY,cardW,SPOT_H,'TOP ASSISTER',topAssister.name,topAssister.a,'ASSISTS');
+  }
+
+  const top=startY+(hasPlayers?SPOT_H+BLOCK_GAP:0);
+  const bottom=top+leaderboardH;
+
+  box(48,top,984,leaderboardH,30,C.panel,C.line,2);
+  textSpaced('LEADERBOARD',540,top+40,19,'950',C.text,'center',3);
+  textSpaced('GOALS · ASSISTS · APPEARANCES',540,top+64,10.5,'800',C.text3,'center',2);
+
+  const left=78, right=1002;
+  const rankW=52, gaW=104, gW=78, aW=78, appsW=94;
+  const gaX=right-gaW/2;
+  const aRight=right-gaW, aX=aRight-aW/2;
+  const gRight=aRight-aW, gX=gRight-gW/2;
+  const appsRight=gRight-gW, appsX=appsRight-appsW/2;
+  const nameLeft=left+rankW+10;
+  const nameRight=appsRight-appsW-14;
+  const rankX=left+rankW/2;
+
+  const headY=top+94;
+  text('#',rankX,headY,11,'900',C.text3,'center');
+  text('PLAYER',nameLeft,headY,11,'900',C.text3,'left');
+  text('APPS',appsX,headY,11,'900',C.text3,'center');
+  text('G',gX,headY,11,'900',C.text3,'center');
+  text('A',aX,headY,11,'900',C.text3,'center');
+  text('G+A',gaX,headY,11,'900',C.text3,'center');
+  ctx.strokeStyle=C.line;
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(left,top+112);ctx.lineTo(right,top+112);ctx.stroke();
+
+  const listTop=top+130, listBottom=bottom-26;
+  const avail=listBottom-listTop;
+
+  if(!rows.length){
+    text('No players yet',540,top+leaderboardH/2+20,20,'800',C.text3,'center');
+  }else{
+    const rowH=clamp(avail/shownCount,ROW_MIN,ROW_MAX);
+    const used=rowH*shownCount;
+    let y=listTop+Math.max(0,(avail-used)/2)+rowH/2;
+
+    shown.forEach((p,i)=>{
+      const rankColor=i<3?C.amber:C.text3;
+      text(String(i+1),rankX,y,16,'900',rankColor,'center');
+      text(p.name,nameLeft,y,fitText(p.name,nameRight-nameLeft,20,'950',13),'950',C.green,'left');
+      text(String(p.apps),appsX,y,17,'800',C.text2,'center');
+      text(String(p.g),gX,y,17,'800',C.text,'center');
+      text(String(p.a),aX,y,17,'800',C.text,'center');
+      text(String(p.ga),gaX,y,19,'950',C.green,'center');
+
+      if(y+rowH<listBottom-10){
+        ctx.strokeStyle=C.line;
+        ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(left,y+rowH/2);ctx.lineTo(right,y+rowH/2);ctx.stroke();
+      }
+      y+=rowH;
+    });
+
+    if(overflow){
+      text(`+ ${rows.length-shown.length} more`,540,y,15,'800',C.text3,'center');
+    }
+  }
+
+  paintFooter('SEASON STATS · 9:16');
+}
+
+function drawSeasonSummaryGraphic(){
+  const W=1080,H=1920;
+  ctx.clearRect(0,0,W,H);
+  paintBackground();
+
+  const matches=sortLog(loadLog());
+  const club=mostCommon(matches.map(m=>m.home));
+
+  const chip='SEASON SUMMARY';
+  const cw=measureSpaced(chip,21,'900',3.5)+56;
+  box(540-cw/2,50,cw,46,23,hexA(C.green,.10),hexA(C.green,.55),2);
+  textSpaced(chip,540,73,21,'900',C.green,'center',3.5);
+
+  const clubLabel=(club||'SEASON SUMMARY').toUpperCase();
+  text(clubLabel,540,150,fitText(clubLabel,940,50,'950',24),'950',C.text,'center');
+
+  let w=0,dr=0,l=0,gf=0,ga=0;
+  matches.forEach(m=>{
+    gf+=m.hs; ga+=m.as;
+    if(m.hs>m.as) w++; else if(m.hs<m.as) l++; else dr++;
+  });
+
+  const recordY=248;
+  text(String(w),300,recordY,88,'950',C.green,'center');
+  textSpaced('WON',300,recordY+58,13,'900',C.text3,'center',2.5);
+  text(String(dr),540,recordY,88,'950',C.amber,'center');
+  textSpaced('DRAWN',540,recordY+58,13,'900',C.text3,'center',2.5);
+  text(String(l),780,recordY,88,'950',C.red,'center');
+  textSpaced('LOST',780,recordY+58,13,'900',C.text3,'center',2.5);
+
+  const gd=gf-ga;
+  textSpaced(`${gf} SCORED · ${ga} CONCEDED · ${gd>=0?'+':''}${gd} GD`,540,345,14,'800',C.text2,'center',1.8);
+
+  // A short season has very little to list, so — as with the player-stats
+  // export — a fixed-height "Recent Form" strip of real content sits above
+  // the match list, and the two blocks are centred together as one unit.
+  const hasMatches=matches.length>0;
+  const contentTop=385, contentBottom=1838;
+  const availContent=contentBottom-contentTop;
+  const FORM_H=100, BLOCK_GAP=26;
+  const HEAD=82, FOOT=26, SUM_ROW_MIN=46, SUM_ROW_MAX=92;
+
+  const listAvailMax=availContent-(hasMatches?FORM_H+BLOCK_GAP:0);
+  const maxRowsEver=Math.max(1,Math.floor((listAvailMax-HEAD-FOOT)/SUM_ROW_MIN));
+  const overflow=matches.length>maxRowsEver;
+  const shown=overflow?matches.slice(0,Math.max(1,maxRowsEver-1)):matches;
+  const shownCount=Math.max(1,shown.length+(overflow?1:0));
+
+  const naturalH=HEAD+SUM_ROW_MAX*shownCount+FOOT;
+  const listH=Math.max(280,Math.min(listAvailMax,naturalH));
+
+  const totalBlock=(hasMatches?FORM_H+BLOCK_GAP:0)+listH;
+  // Same reasoning as the player-stats export: start right under the header
+  // rather than centring, so a short season's leftover space sits at the
+  // bottom instead of splitting into a gap above the content too.
+  const startY=contentTop+Math.max(0,(availContent-totalBlock)*0.08);
+
+  if(hasMatches){
+    const form=matches.slice(-5);
+    textSpaced('RECENT FORM',540,startY+14,11,'900',C.text3,'center',2.4);
+    const pillW=66, pillGap=14;
+    const totalW=form.length*pillW+(form.length-1)*pillGap;
+    const sx=540-totalW/2;
+    form.forEach((m,i)=>{
+      const res=m.hs>m.as?'W':m.hs<m.as?'L':'D';
+      const c=res==='W'?C.green:res==='L'?C.red:C.amber;
+      const x=sx+i*(pillW+pillGap);
+      box(x,startY+34,pillW,pillW,16,hexA(c,.14),hexA(c,.55),2);
+      text(res,x+pillW/2,startY+34+pillW/2,24,'950',c,'center');
+    });
+  }
+
+  const top=startY+(hasMatches?FORM_H+BLOCK_GAP:0);
+  const bottom=top+listH;
+
+  box(48,top,984,listH,30,C.panel,C.line,2);
+  textSpaced('ALL MATCHES',540,top+40,19,'950',C.text,'center',3);
+  ctx.strokeStyle=C.line;
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(78,top+64);ctx.lineTo(1002,top+64);ctx.stroke();
+
+  const listTop=top+82, listBottom=bottom-26;
+  const avail=listBottom-listTop;
+
+  if(!matches.length){
+    text('No matches yet',540,top+listH/2+20,20,'800',C.text3,'center');
+  }else{
+    const rowH=clamp(avail/shownCount,SUM_ROW_MIN,SUM_ROW_MAX);
+    const used=rowH*shownCount;
+    let y=listTop+Math.max(0,(avail-used)/2)+rowH/2;
+
+    shown.forEach(m=>{
+      const res=m.hs>m.as?'W':m.hs<m.as?'L':'D';
+      const resColor=res==='W'?C.green:res==='L'?C.red:C.amber;
+
+      box(78,y-18,42,36,10,hexA(resColor,.15),hexA(resColor,.55),2);
+      text(res,99,y,16,'950',resColor,'center');
+
+      const mdLabel=(m.matchday||'Match').toUpperCase();
+      text(mdLabel,138,y,fitText(mdLabel,150,13,'900',10),'900',C.text3,'left');
+
+      const scoreLabel=`${m.home} ${m.hs}–${m.as} ${m.away}`;
+      text(scoreLabel,940,y,fitText(scoreLabel,600,19,'800',13),'800',C.text,'right');
+
+      if(y+rowH<listBottom){
+        ctx.strokeStyle=C.line;
+        ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(78,y+rowH/2);ctx.lineTo(1002,y+rowH/2);ctx.stroke();
+      }
+      y+=rowH;
+    });
+
+    if(overflow){
+      text(`+ ${matches.length-shown.length} more`,540,y,15,'800',C.text3,'center');
+    }
+  }
+
+  paintFooter('SEASON SUMMARY · 9:16');
+}
+
+// Renders one export graphic to an offscreen canvas and shares/downloads it —
+// the same single-file save pattern used by save(), reused for both the
+// player-stats and season-summary exports.
+function exportImage(drawFn,filenameBase,triggerBtn){
+  const off=document.createElement('canvas');
+  off.width=1080; off.height=1920;
+  renderToCanvas(off,drawFn);
+
+  const original=triggerBtn?triggerBtn.textContent:null;
+  if(triggerBtn){ triggerBtn.disabled=true; triggerBtn.textContent='Preparing…'; }
+
+  off.toBlob(async blob=>{
+    if(triggerBtn){ triggerBtn.disabled=false; triggerBtn.textContent=original; }
+    if(!blob){ alert('Could not create the image.'); return; }
+    const file=new File([blob],`${filenameBase}.png`,{type:'image/png'});
+    let saved=false;
+
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({title:'Match Graphic Builder',files:[file]});
+        saved=true;
+      }catch(e){
+        if(e && e.name==='AbortError') return;
+      }
+    }
+
+    if(!saved){
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),5000);
+    }
+  },'image/png');
+}
+
 /* ============================ MATCH LOG ============================ */
 
 const LOG_KEY='mgb.matchLog.v1';
@@ -1348,6 +1670,7 @@ function renderLog(){
   if(!list.length){
     logSummary.hidden=true;
     clearLogBtn.hidden=true;
+    exportLogBtn.hidden=true;
     const empty=document.createElement('div');
     empty.className='empty-state';
     empty.textContent='No matches yet. Build a graphic and it will be saved here.';
@@ -1356,6 +1679,7 @@ function renderLog(){
   }
 
   clearLogBtn.hidden=false;
+  exportLogBtn.hidden=false;
   logSummary.hidden=false;
 
   let w=0,dr=0,l=0,gf=0,ga=0;
@@ -1439,90 +1763,31 @@ function renderLog(){
 
 /* ============================ GALLERY ============================ */
 
-const THUMB_W=126, THUMB_H=224;
-const THUMB_FALLBACK='data:image/svg+xml;utf8,'+encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="${THUMB_W}" height="${THUMB_H}"><rect width="100%" height="100%" fill="#0b1310"/></svg>`
-);
-// In-memory only: thumbnails are cheap to regenerate from the stored raw
-// text, so nothing here needs to survive a reload.
-const thumbCache=new Map();
-
-function renderThumbDataURL(d){
-  const full=document.createElement('canvas');
-  full.width=1080; full.height=1920;
-  renderMatchToCanvas(full,d);
-  const small=document.createElement('canvas');
-  small.width=THUMB_W; small.height=THUMB_H;
-  small.getContext('2d').drawImage(full,0,0,THUMB_W,THUMB_H);
-  return small.toDataURL('image/jpeg',0.82);
-}
-
-function getThumb(entry){
-  const cached=thumbCache.get(entry.id);
-  if(cached && cached.raw===entry.raw) return cached.dataURL;
-  let dataURL=THUMB_FALLBACK;
-  try{
-    dataURL=renderThumbDataURL(parse(entry.raw));
-  }catch(e){/* keep fallback */}
-  thumbCache.set(entry.id,{raw:entry.raw,dataURL});
-  return dataURL;
-}
-
 // The gallery, the log and the lightbox all read the same stored matches in
-// the same order, so a tile's position always matches its lightbox index.
+// the same order, so an index into this list always means the same match
+// everywhere. No thumbnails are pre-rendered: the gallery is a single entry
+// point, and the lightbox itself draws each match on demand.
 function galleryData(){ return sortLog(loadLog()); }
 
 function renderGallery(){
   const list=galleryData();
-  galleryGrid.textContent='';
 
   if(!list.length){
+    galleryOpenBtn.hidden=true;
     galleryCount.hidden=true;
-    const empty=document.createElement('div');
-    empty.className='empty-state';
-    empty.textContent='Your generated graphics will appear here once you build a match.';
-    galleryGrid.appendChild(empty);
+    galleryEmpty.hidden=false;
+    galleryEmpty.textContent='Your generated graphics will appear here once you build a match.';
     return;
   }
 
+  galleryEmpty.hidden=true;
   galleryCount.hidden=false;
   galleryCount.textContent=`${list.length} graphic${list.length===1?'':'s'}`;
-
-  list.forEach((m,i)=>{
-    const res=m.hs>m.as?'w':m.hs<m.as?'l':'d';
-
-    const tile=document.createElement('button');
-    tile.type='button';
-    tile.className='gallery-tile';
-    tile.setAttribute('aria-label',`Open graphic — ${m.matchday||'match'}: ${m.home} ${m.hs}–${m.as} ${m.away}`);
-
-    const img=document.createElement('img');
-    img.className='gallery-thumb';
-    img.loading='lazy';
-    img.decoding='async';
-    img.alt='';
-    img.src=getThumb(m);
-    tile.appendChild(img);
-
-    const badge=document.createElement('span');
-    badge.className='gallery-badge '+res;
-    badge.textContent=res.toUpperCase();
-    tile.appendChild(badge);
-
-    const cap=document.createElement('span');
-    cap.className='gallery-caption';
-    const capMd=document.createElement('span');
-    capMd.className='gallery-caption-md';
-    capMd.textContent=m.matchday||'Match';
-    const capScore=document.createElement('span');
-    capScore.className='gallery-caption-score';
-    capScore.textContent=`${m.hs}–${m.as}`;
-    cap.append(capMd,capScore);
-    tile.appendChild(cap);
-
-    tile.addEventListener('click',()=>openLightbox(i));
-    galleryGrid.appendChild(tile);
-  });
+  galleryOpenBtn.hidden=false;
+  const first=list[0];
+  galleryOpenSub.textContent=list.length===1
+    ? 'Tap to view'
+    : `Tap to browse, starting with ${first.matchday||'your first match'}`;
 }
 
 /* ============================ LIGHTBOX ============================ */
@@ -1645,6 +1910,7 @@ function renderPlayerStats(){
 
   if(!rows.length){
     statsSubtitle.textContent='';
+    exportStatsBtn.hidden=true;
     const empty=document.createElement('div');
     empty.className='empty-state';
     empty.textContent='No player stats yet — build a match to get started.';
@@ -1652,6 +1918,7 @@ function renderPlayerStats(){
     return;
   }
 
+  exportStatsBtn.hidden=false;
   statsSubtitle.textContent=`${rows.length} player${rows.length===1?'':'s'} · across your match log`;
 
   const head=document.createElement('div');
@@ -1880,6 +2147,14 @@ buildBtn.addEventListener('click',build);
 document.getElementById('save').addEventListener('click',save);
 saveAllBtn.addEventListener('click',()=>saveAllGraphics(lastBulkBatch));
 pkg.addEventListener('click',()=>openPackage(!preview.classList.contains('open')));
+galleryOpenBtn.addEventListener('click',()=>openLightbox(0));
+
+exportStatsBtn.addEventListener('click',()=>{
+  exportImage(drawPlayerStatsGraphic,'season-player-stats',exportStatsBtn);
+});
+exportLogBtn.addEventListener('click',()=>{
+  exportImage(drawSeasonSummaryGraphic,'season-summary',exportLogBtn);
+});
 
 document.getElementById('sample').addEventListener('click',()=>{
   data.value=SAMPLE;
@@ -1895,7 +2170,6 @@ document.getElementById('clear').addEventListener('click',resetInterface);
 clearLogBtn.addEventListener('click',()=>{
   if(confirm('Delete every match in the log? This cannot be undone.')){
     persistLog([]);
-    thumbCache.clear();
     refreshAll();
   }
 });
