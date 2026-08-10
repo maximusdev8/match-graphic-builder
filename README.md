@@ -86,13 +86,14 @@ Clearing your browser data clears the log.
 
 ## Graphic gallery
 
-Every match in the log gets a thumbnail in the **Graphic gallery**. Tap any
-thumbnail to open it full-size, then use the ‹ › arrows (or swipe, or the
-left/right arrow keys) to flip through every match you've built, oldest to
-newest. Nothing extra is stored for this — thumbnails and the full-size view
-are both regenerated on the fly from the same match text already saved in the
-log, so the gallery can't drift out of sync with it and doesn't add to your
-browser's storage usage.
+The **Graphic gallery** panel is a single **View graphic gallery** button —
+tap it to open the first match full-size, then use the ‹ › arrows (or swipe,
+or the left/right arrow keys) to flip through every match you've built,
+oldest to newest. Tapping a row in the match log opens that specific match
+the same way. Nothing is pre-rendered for this — each image is drawn on the
+fly, on demand, from the same match text already saved in the log, so the
+gallery can't drift out of sync with it and doesn't add to your browser's
+storage usage.
 
 ## Player stats
 
@@ -104,6 +105,36 @@ delete a match — there's nothing to save separately.
 Note: a player is aggregated by the exact name you typed, so keep spelling
 consistent across weeks (e.g. always "Mckeown", not "McKeown" one week and
 "Mckeown" the next) for their stats to combine correctly.
+
+## Exporting a stats image
+
+Both the **Player stats** and **Match log** panels have an **📤 Export
+image** button. Each renders its own shareable 1080 × 1920 graphic — in the
+same visual style as a match graphic — built from everything currently in
+your log:
+
+- **Player stats export**: a "Top Scorer" / "Top Assister" spotlight plus
+  the full season leaderboard.
+- **Match log export**: your win/draw/loss record, goals scored/conceded and
+  goal difference, a recent-form strip (last 5 results), and every match
+  played.
+
+Tapping either saves it the same way as a match graphic — the iOS Share
+Sheet where available, otherwise a direct download.
+
+## Does my data survive closing the browser?
+
+Yes. Every match you build — and everything derived from it (the gallery,
+player stats, match log) — is saved to your browser's local storage the
+moment you build it, and reloading or reopening the page brings it all back
+exactly as it was.
+
+The one thing that *doesn't* persist is unbuilt draft text sitting in the
+paste box — if you type or paste something and reload before tapping
+**Confirm & Build Graphic**, that draft is lost (only built matches are
+saved). This storage is local to the specific browser and device you're
+using — it isn't synced anywhere, so it won't follow you to a different
+phone or browser, and clearing your browser's site data clears it.
 
 ## Deploying with GitHub Pages
 
