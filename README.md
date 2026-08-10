@@ -125,28 +125,39 @@ Sheet where available, otherwise a direct download.
 ## Highlight video
 
 The **Highlight video** panel turns a short clip (15 seconds or less works
-best) into a TikTok-ready edit — an attention-grabbing opening hook and a
-small persistent score badge — processed entirely on your device. Nothing is
-uploaded anywhere; the video never leaves your browser.
+best) into a TikTok-ready edit — a two-beat opening hook, a persistent score
+badge, a real voiceover, and optional sound accents/music — processed
+entirely on your device. Nothing is uploaded anywhere; the video and any
+audio you record never leave your browser.
 
 1. Choose a video (longer clips get a drag-to-trim slider to pick your 15s
    window).
-2. Paste the game info in the same style as the graphic builder — matchday,
+2. Optionally add a **voiceover**: tap **Record voiceover** to record over a
+   looping preview of your clip (re-record as many times as you like before
+   building), or **Upload audio** to bring in something recorded elsewhere.
+   By default the clip's own audio ducks quietly under the voiceover; check
+   **Mute original clip audio** to drop it entirely instead. This is a real
+   recorded voice, not AI text-to-speech.
+3. Optionally tweak **Sound**: a synthesized "whoosh" plays under the
+   opening hook by default, an "impact" thump on the beat is available too,
+   and you can add your own background music file (mixed under everything
+   with a fade in/out — since it's your file, the licensing is on you).
+4. Paste the game info in the same style as the graphic builder — matchday,
    score line, then one line describing what happened:
    ```
    Matchday 5
    Great Colne 2-1 Opponent
    Maximus 87' screamer from 30 yards
    ```
-3. Tap **Build Highlight Video**, then **Save Highlight Video** when it's
+5. Tap **Build Highlight Video**, then **Save Highlight Video** when it's
    ready — Share Sheet on iPhone, direct download elsewhere.
 
-The opening ~1.5s shows a bold card built around what happened (that's the
-hook), which then fades to a small badge in the top-left with just the
-score — out of the way of both the action and TikTok's own on-screen UI
-(captions and the like/comment/share column sit bottom-right). A source
-that isn't already 9:16 is cropped to fill the frame, the same way TikTok's
-own uploader handles it.
+The opening ~1.5s reveals the hook in two quick beats — a small score chip
+pops in first, then the full headline card — before fading to a small badge
+in the top-left with just the score, out of the way of both the action and
+TikTok's own on-screen UI (captions and the like/comment/share column sit
+bottom-right). A source that isn't already 9:16 is cropped to fill the
+frame, the same way TikTok's own uploader handles it.
 
 **Worth knowing before you use it:**
 - The first use downloads a real build of FFmpeg compiled to WebAssembly
@@ -154,7 +165,14 @@ own uploader handles it.
   `vendor/ffmpeg/README.md`). It's cached after that, but that first load
   needs a decent connection.
 - Processing runs on your device's CPU, not a server — expect anywhere from
-  a few seconds to around a minute for a 15s clip, depending on your phone.
+  a few seconds to around a minute for a 15s clip, depending on your phone;
+  adding a voiceover, music, or accents doesn't meaningfully change that.
+- Recording a voiceover needs microphone permission. If it's denied or
+  unsupported, uploading an audio file still works.
+- No sound effects or music are bundled from anywhere else — the whoosh and
+  impact accents are synthesized from scratch with FFmpeg's own audio
+  filters, and any music is a file you bring yourself, both specifically to
+  sidestep the unclear licensing on "free" meme-sound packs.
 - This is a heavier, newer part of the site than the graphics. It should
   work on any modern phone or desktop browser, but hasn't been battle-tested
   across device generations the way the canvas-based graphics have.
