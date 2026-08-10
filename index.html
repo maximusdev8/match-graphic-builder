@@ -11,6 +11,7 @@
   --bg:#070c0a;
   --panel:#0e1613;
   --panel-2:#121d18;
+  --panel-3:#0b1310;
   --line:#243329;
   --line-2:#31453a;
   --green:#3ee87f;
@@ -20,7 +21,6 @@
   --text-3:#7d918a;
   --red:#ff5a6e;
   --amber:#ffc857;
-  --r:16px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
@@ -41,32 +41,74 @@ body{
   margin:0 auto;
   padding:20px 16px calc(40px + env(safe-area-inset-bottom));
 }
+button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 
 /* ---------- masthead ---------- */
-.masthead{display:flex;align-items:center;gap:13px;margin-bottom:20px}
+.masthead{
+  position:relative;
+  display:flex;align-items:center;flex-wrap:wrap;gap:13px;
+  margin-bottom:22px;
+}
+.masthead::before{
+  content:'';
+  position:absolute;left:26px;top:50%;
+  width:420px;height:260px;
+  transform:translate(-38%,-56%);
+  background:radial-gradient(closest-side,rgba(62,232,127,.20),transparent 72%);
+  filter:blur(2px);
+  pointer-events:none;
+  z-index:-1;
+  animation:auroraPulse 7s ease-in-out infinite;
+}
+@keyframes auroraPulse{
+  0%,100%{opacity:.65;transform:translate(-38%,-56%) scale(1)}
+  50%{opacity:1;transform:translate(-38%,-56%) scale(1.1)}
+}
+@media (prefers-reduced-motion:reduce){.masthead::before{animation:none}}
 .brand-mark{
   width:46px;height:46px;flex:0 0 46px;
   display:grid;place-items:center;
   font-size:24px;line-height:1;
   border-radius:14px;
-  background:linear-gradient(150deg,rgba(62,232,127,.22),rgba(62,232,127,.05));
-  border:1px solid rgba(62,232,127,.34);
+  background:linear-gradient(150deg,rgba(62,232,127,.24),rgba(62,232,127,.05));
+  border:1px solid rgba(62,232,127,.36);
 }
 .masthead h1{margin:0;font-size:21px;font-weight:900;letter-spacing:-.02em}
 .tagline{margin:3px 0 0;font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:.04em;text-transform:uppercase}
+.masthead-stat{
+  margin-left:auto;
+  padding:7px 13px;
+  border-radius:20px;
+  background:#0e1a15;
+  border:1px solid var(--line-2);
+  font-size:11.5px;font-weight:800;color:var(--text-2);
+  white-space:nowrap;
+}
 
 /* ---------- panels ---------- */
 .layout{display:grid;grid-template-columns:1fr;gap:16px}
 .panel{
+  position:relative;
   background:linear-gradient(180deg,var(--panel-2),var(--panel));
   border:1px solid var(--line);
   border-radius:22px;
   padding:18px;
 }
+.panel::before{
+  content:'';
+  position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 42%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;
+}
 .panel-title{margin:0;font-size:15px;font-weight:900;letter-spacing:.01em}
 .panel-sub{margin:6px 0 14px;font-size:13px;line-height:1.5;color:var(--text-2)}
 .hint{margin:12px 0 0;font-size:12px;line-height:1.55;color:var(--text-3)}
 .hint b{color:var(--text-2)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.panel-head .panel-title{margin:0}
+.panel-count,.panel-sub-inline{font-size:11.5px;font-weight:800;color:var(--text-3)}
 
 /* ---------- input ---------- */
 .paste{
@@ -89,6 +131,7 @@ body{
 .buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
 .btn{
   appearance:none;border:0;cursor:pointer;
+  position:relative;overflow:hidden;
   border-radius:12px;
   padding:12px 15px;
   font-family:var(--font);
@@ -97,21 +140,20 @@ body{
   transition:transform .12s ease,filter .15s ease,background .15s ease;
 }
 .btn:active{transform:scale(.975)}
-.btn.primary{
-  flex:1 1 auto;min-width:170px;
+.btn.primary,.btn.save{
   background:linear-gradient(160deg,#5cf494,var(--green));
   color:#04180d;
   box-shadow:0 6px 18px -8px rgba(62,232,127,.7);
 }
+.btn.primary::after,.btn.save::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,0) 55%);
+  pointer-events:none;
+}
+.btn.primary{flex:1 1 auto;min-width:170px}
 .btn.ghost{background:#1a2723;color:var(--text);border:1px solid var(--line-2)}
 .btn.ghost:hover{background:#20302a}
-.btn.save{
-  width:100%;margin-top:14px;
-  padding:15px;font-size:15px;
-  background:linear-gradient(160deg,#5cf494,var(--green));
-  color:#04180d;
-  box-shadow:0 6px 18px -8px rgba(62,232,127,.7);
-}
+.btn.save{width:100%;margin-top:14px;padding:15px;font-size:15px}
 .btn.tiny{padding:7px 11px;font-size:12px;border-radius:9px}
 
 /* ---------- output ---------- */
@@ -147,15 +189,13 @@ body{
   border:1px solid var(--line);
 }
 
-/* ---------- match log ---------- */
-.log-panel{margin-top:16px}
-.log-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-.log-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+/* ---------- shared list bits ---------- */
+.summary-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .chip{
   display:flex;align-items:baseline;gap:6px;
   padding:8px 12px;
   border-radius:11px;
-  background:#0b1310;
+  background:var(--panel-3);
   border:1px solid var(--line);
   font-size:12px;font-weight:800;
 }
@@ -163,17 +203,129 @@ body{
 .chip .v{color:var(--text);font-size:14px;font-weight:900}
 .chip .v.win{color:var(--green)}
 .chip .v.loss{color:var(--red)}
-
-.log-list{display:flex;flex-direction:column;gap:9px}
-.log-empty{
+.empty-state{
   padding:22px 16px;text-align:center;
   color:var(--text-3);font-size:13px;line-height:1.6;
   border:1px dashed var(--line-2);border-radius:14px;
+  grid-column:1/-1;
 }
+
+/* ---------- gallery ---------- */
+.gallery-panel{margin-top:16px}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
+.gallery-tile{
+  position:relative;
+  aspect-ratio:9/16;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--panel-3);
+  padding:0;cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.gallery-tile:active{transform:scale(.96)}
+@media (hover:hover){
+  .gallery-tile:hover{transform:translateY(-3px);border-color:var(--green);box-shadow:0 14px 26px -14px rgba(0,0,0,.65)}
+}
+.gallery-thumb{width:100%;height:100%;object-fit:cover;display:block;background:var(--panel-3)}
+.gallery-badge{
+  position:absolute;top:8px;left:8px;
+  min-width:22px;height:22px;padding:0 5px;border-radius:7px;
+  display:grid;place-items:center;
+  font-size:10.5px;font-weight:900;
+  background:rgba(6,12,10,.78);backdrop-filter:blur(4px);
+  border:1px solid rgba(255,255,255,.14);
+}
+.gallery-badge.w{color:var(--green)}
+.gallery-badge.l{color:var(--red)}
+.gallery-badge.d{color:var(--amber)}
+.gallery-caption{
+  position:absolute;left:0;right:0;bottom:0;
+  display:flex;flex-direction:column;gap:1px;
+  padding:22px 9px 9px;
+  background:linear-gradient(to top,rgba(3,7,5,.92),rgba(3,7,5,0));
+  text-align:left;
+}
+.gallery-caption-md{font-size:8.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.gallery-caption-score{font-size:12.5px;font-weight:900;color:var(--text)}
+
+/* ---------- lightbox ---------- */
+.lightbox{position:fixed;inset:0;z-index:1000}
+.lightbox[hidden]{display:none}
+.lightbox-backdrop{position:absolute;inset:0;background:rgba(3,7,5,.95);backdrop-filter:blur(9px);opacity:0;transition:opacity .2s ease}
+.lightbox.open .lightbox-backdrop{opacity:1}
+.lightbox-body{
+  position:relative;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  padding:76px 20px 28px;
+}
+.lightbox-stage{
+  position:relative;max-width:100%;
+  opacity:0;transform:scale(.96);
+  transition:opacity .22s ease,transform .22s ease;
+}
+.lightbox.open .lightbox-stage{opacity:1;transform:none}
+.lightbox-stage canvas{
+  display:block;
+  max-width:100%;max-height:calc(100vh - 210px);
+  width:auto;height:auto;
+  border-radius:18px;
+  box-shadow:0 40px 90px -24px rgba(0,0,0,.8);
+  border:1px solid rgba(255,255,255,.09);
+}
+.lb-btn{
+  appearance:none;border:0;cursor:pointer;
+  background:rgba(14,22,18,.8);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.15);
+  color:var(--text);
+  display:grid;place-items:center;
+  transition:background .15s ease,transform .12s ease;
+}
+.lb-btn:hover{background:rgba(22,34,28,.92)}
+.lb-close{position:fixed;top:16px;right:16px;width:40px;height:40px;border-radius:12px;font-size:16px;z-index:1002}
+.lb-close:active{transform:scale(.9)}
+.lb-arrow{position:fixed;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;font-size:22px;z-index:1002}
+.lb-arrow:active{transform:translateY(-50%) scale(.9)}
+.lb-prev{left:10px}
+.lb-next{right:10px}
+.lb-count{
+  position:fixed;top:20px;left:16px;
+  font-size:11.5px;font-weight:800;color:var(--text-2);
+  background:rgba(6,12,10,.72);padding:6px 11px;border-radius:20px;
+  border:1px solid var(--line-2);z-index:1002;
+}
+.lightbox-info{text-align:center}
+.lb-md{display:block;font-size:10.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.lb-score{display:block;margin-top:3px;font-size:14.5px;font-weight:800;color:var(--text)}
+@media(max-width:520px){.lb-arrow{width:42px;height:42px;font-size:19px}}
+
+/* ---------- player stats ---------- */
+.stats-panel{margin-top:16px}
+.stats-table{display:flex;flex-direction:column;gap:6px}
+.stats-row{
+  display:grid;
+  grid-template-columns:26px 1fr 44px 34px 34px 44px;
+  align-items:center;gap:4px;
+  padding:10px;
+  border-radius:12px;
+}
+.stats-row:not(.stats-head){background:var(--panel-3);border:1px solid var(--line)}
+.stats-row span{font-size:12.5px;font-weight:800;text-align:center}
+.stats-row span:nth-child(2){text-align:left}
+.stats-head{padding:0 10px;color:var(--text-3);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase}
+.stats-rank{color:var(--text-3);font-weight:900}
+.stats-row.top .stats-rank{color:var(--amber)}
+.stats-name{color:var(--text);font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stats-ga{color:var(--green);font-weight:950}
+
+/* ---------- match log ---------- */
+.log-panel{margin-top:16px}
+.log-list{display:grid;gap:9px}
 .log-item{
   display:flex;align-items:center;gap:12px;
   padding:12px 13px;
-  background:#0b1310;
+  background:var(--panel-3);
   border:1px solid var(--line);
   border-radius:14px;
 }
@@ -187,14 +339,9 @@ body{
 .log-badge.w{background:rgba(62,232,127,.14);color:var(--green);border:1px solid rgba(62,232,127,.4)}
 .log-badge.l{background:rgba(255,90,110,.13);color:var(--red);border:1px solid rgba(255,90,110,.38)}
 .log-badge.d{background:rgba(255,200,87,.13);color:var(--amber);border:1px solid rgba(255,200,87,.36)}
-.log-main{flex:1 1 auto;min-width:0}
+.log-main{flex:1 1 auto;min-width:0;cursor:pointer}
 .log-md{font-size:10.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
-.log-score{
-  margin-top:3px;font-size:13.5px;font-weight:800;color:var(--text);
-  line-height:1.35;
-  overflow-wrap:anywhere;
-}
-.log-score .n{font-weight:900}
+.log-score{margin-top:3px;font-size:13.5px;font-weight:800;color:var(--text);line-height:1.35;overflow-wrap:anywhere}
 .log-actions{display:flex;gap:6px;flex:0 0 auto}
 .icon-btn{
   appearance:none;cursor:pointer;
@@ -228,6 +375,7 @@ body{
       <h1>Match Graphic Builder</h1>
       <p class="tagline">1080 × 1920 · TikTok &amp; Instagram</p>
     </div>
+    <span id="mastheadStat" class="masthead-stat" hidden></span>
   </header>
 
   <div class="layout">
@@ -265,15 +413,48 @@ body{
 
   </div>
 
+  <section class="panel gallery-panel">
+    <div class="panel-head">
+      <h2 class="panel-title">Graphic gallery</h2>
+      <span id="galleryCount" class="panel-count" hidden></span>
+    </div>
+    <div id="galleryGrid" class="gallery-grid"></div>
+  </section>
+
+  <section class="panel stats-panel">
+    <div class="panel-head">
+      <h2 class="panel-title">Player stats</h2>
+      <span id="statsSubtitle" class="panel-sub-inline"></span>
+    </div>
+    <div id="statsTable" class="stats-table"></div>
+  </section>
+
   <section class="panel log-panel">
-    <div class="log-head">
+    <div class="panel-head">
       <h2 class="panel-title">Match log</h2>
       <button id="clearLog" class="btn ghost tiny" type="button" hidden>Clear all</button>
     </div>
-    <div id="logSummary" class="log-summary" hidden></div>
+    <div id="logSummary" class="summary-chips" hidden></div>
     <div id="logList" class="log-list"></div>
   </section>
 
+</div>
+
+<div id="lightbox" class="lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Match graphic viewer">
+  <div id="lbBackdrop" class="lightbox-backdrop"></div>
+  <button id="lbClose" type="button" class="lb-btn lb-close" aria-label="Close">✕</button>
+  <button id="lbPrev" type="button" class="lb-btn lb-arrow lb-prev" aria-label="Previous match">‹</button>
+  <button id="lbNext" type="button" class="lb-btn lb-arrow lb-next" aria-label="Next match">›</button>
+  <span id="lbCount" class="lb-count"></span>
+  <div class="lightbox-body">
+    <div id="lbStage" class="lightbox-stage">
+      <canvas id="lbCanvas" width="1080" height="1920"></canvas>
+    </div>
+    <div class="lightbox-info">
+      <span id="lbMd" class="lb-md"></span>
+      <span id="lbScore" class="lb-score"></span>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -308,7 +489,7 @@ const C={
 
 const data=document.getElementById('data');
 const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
+let ctx=canvas.getContext('2d');
 const outputPanel=document.getElementById('outputPanel');
 const pkg=document.getElementById('pkg');
 const pkgSub=document.getElementById('pkgSub');
@@ -316,6 +497,22 @@ const preview=document.getElementById('preview');
 const logList=document.getElementById('logList');
 const logSummary=document.getElementById('logSummary');
 const clearLogBtn=document.getElementById('clearLog');
+const mastheadStat=document.getElementById('mastheadStat');
+const galleryGrid=document.getElementById('galleryGrid');
+const galleryCount=document.getElementById('galleryCount');
+const statsTable=document.getElementById('statsTable');
+const statsSubtitle=document.getElementById('statsSubtitle');
+
+const lightbox=document.getElementById('lightbox');
+const lbBackdrop=document.getElementById('lbBackdrop');
+const lbStage=document.getElementById('lbStage');
+const lbCanvas=document.getElementById('lbCanvas');
+const lbClose=document.getElementById('lbClose');
+const lbPrev=document.getElementById('lbPrev');
+const lbNext=document.getElementById('lbNext');
+const lbCount=document.getElementById('lbCount');
+const lbMd=document.getElementById('lbMd');
+const lbScore=document.getElementById('lbScore');
 
 /* ============================ PARSING ============================ */
 /* The input contract is unchanged. */
@@ -886,7 +1083,7 @@ function drawTimeline(d,top,height){
         ctx.lineWidth=2;
         const groupLeft=(assistName?assistLeft:scorerLeft)-14;
         if(groupLeft>78){ctx.beginPath();ctx.moveTo(78,y);ctx.lineTo(groupLeft,y);ctx.stroke();}
-        ctx.beginPath();ctx.moveTo(HOME_BALL_X+BALL_HALF+6,y);ctx.lineTo(496,y);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(HOME_BALL_X+BALL_HALF+6,y);ctx.lineTo(494,y);ctx.stroke();
 
       }else{
         // Assist with no matching goal — same bracket treatment, no box.
@@ -988,6 +1185,15 @@ function drawStats(players,top,perRow,rows,cardH,gap,titleH){
   }
 }
 
+// Points `ctx` at an arbitrary canvas and runs the standard draw pipeline
+// against it. draw()/drawTimeline()/drawStats() are unmodified — they read
+// the shared `ctx` variable rather than a fixed canvas, so the same pipeline
+// renders the visible builder canvas, gallery thumbnails and the lightbox.
+function renderMatchToCanvas(targetCanvas,d){
+  ctx=targetCanvas.getContext('2d');
+  draw(d);
+}
+
 /* ============================ MATCH LOG ============================ */
 
 const LOG_KEY='mgb.matchLog.v1';
@@ -1036,12 +1242,12 @@ function addToLog(d,raw){
 
   if(idx>=0) list[idx]=entry; else list.push(entry);
   persistLog(sortLog(list));
-  renderLog();
+  refreshAll();
 }
 
 function deleteFromLog(id){
   persistLog(loadLog().filter(x=>x.id!==id));
-  renderLog();
+  refreshAll();
 }
 
 function renderLog(){
@@ -1053,7 +1259,7 @@ function renderLog(){
     logSummary.hidden=true;
     clearLogBtn.hidden=true;
     const empty=document.createElement('div');
-    empty.className='log-empty';
+    empty.className='empty-state';
     empty.textContent='No matches yet. Build a graphic and it will be saved here.';
     logList.appendChild(empty);
     return;
@@ -1087,7 +1293,7 @@ function renderLog(){
     logSummary.appendChild(c);
   });
 
-  list.forEach(m=>{
+  list.forEach((m,i)=>{
     const item=document.createElement('div');
     item.className='log-item';
 
@@ -1098,6 +1304,7 @@ function renderLog(){
 
     const main=document.createElement('div');
     main.className='log-main';
+    main.title='Open in the gallery';
     const md=document.createElement('div');
     md.className='log-md';
     md.textContent=m.matchday||'Match';
@@ -1106,6 +1313,7 @@ function renderLog(){
     // textContent throughout: team names come from user input.
     score.textContent=`${m.home} ${m.hs}–${m.as} ${m.away}`;
     main.append(md,score);
+    main.addEventListener('click',()=>openLightboxForId(m.id));
 
     const actions=document.createElement('div');
     actions.className='log-actions';
@@ -1116,7 +1324,8 @@ function renderLog(){
     view.title='Rebuild this match';
     view.setAttribute('aria-label','Rebuild '+(m.matchday||'match'));
     view.textContent='↻';
-    view.addEventListener('click',()=>{
+    view.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
       data.value=m.raw;
       build();
     });
@@ -1127,12 +1336,272 @@ function renderLog(){
     del.title='Delete from log';
     del.setAttribute('aria-label','Delete '+(m.matchday||'match'));
     del.textContent='✕';
-    del.addEventListener('click',()=>deleteFromLog(m.id));
+    del.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      deleteFromLog(m.id);
+    });
 
     actions.append(view,del);
     item.append(badge,main,actions);
     logList.appendChild(item);
   });
+}
+
+/* ============================ GALLERY ============================ */
+
+const THUMB_W=126, THUMB_H=224;
+const THUMB_FALLBACK='data:image/svg+xml;utf8,'+encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${THUMB_W}" height="${THUMB_H}"><rect width="100%" height="100%" fill="#0b1310"/></svg>`
+);
+// In-memory only: thumbnails are cheap to regenerate from the stored raw
+// text, so nothing here needs to survive a reload.
+const thumbCache=new Map();
+
+function renderThumbDataURL(d){
+  const full=document.createElement('canvas');
+  full.width=1080; full.height=1920;
+  renderMatchToCanvas(full,d);
+  const small=document.createElement('canvas');
+  small.width=THUMB_W; small.height=THUMB_H;
+  small.getContext('2d').drawImage(full,0,0,THUMB_W,THUMB_H);
+  return small.toDataURL('image/jpeg',0.82);
+}
+
+function getThumb(entry){
+  const cached=thumbCache.get(entry.id);
+  if(cached && cached.raw===entry.raw) return cached.dataURL;
+  let dataURL=THUMB_FALLBACK;
+  try{
+    dataURL=renderThumbDataURL(parse(entry.raw));
+  }catch(e){/* keep fallback */}
+  thumbCache.set(entry.id,{raw:entry.raw,dataURL});
+  return dataURL;
+}
+
+// The gallery, the log and the lightbox all read the same stored matches in
+// the same order, so a tile's position always matches its lightbox index.
+function galleryData(){ return sortLog(loadLog()); }
+
+function renderGallery(){
+  const list=galleryData();
+  galleryGrid.textContent='';
+
+  if(!list.length){
+    galleryCount.hidden=true;
+    const empty=document.createElement('div');
+    empty.className='empty-state';
+    empty.textContent='Your generated graphics will appear here once you build a match.';
+    galleryGrid.appendChild(empty);
+    return;
+  }
+
+  galleryCount.hidden=false;
+  galleryCount.textContent=`${list.length} graphic${list.length===1?'':'s'}`;
+
+  list.forEach((m,i)=>{
+    const res=m.hs>m.as?'w':m.hs<m.as?'l':'d';
+
+    const tile=document.createElement('button');
+    tile.type='button';
+    tile.className='gallery-tile';
+    tile.setAttribute('aria-label',`Open graphic — ${m.matchday||'match'}: ${m.home} ${m.hs}–${m.as} ${m.away}`);
+
+    const img=document.createElement('img');
+    img.className='gallery-thumb';
+    img.loading='lazy';
+    img.decoding='async';
+    img.alt='';
+    img.src=getThumb(m);
+    tile.appendChild(img);
+
+    const badge=document.createElement('span');
+    badge.className='gallery-badge '+res;
+    badge.textContent=res.toUpperCase();
+    tile.appendChild(badge);
+
+    const cap=document.createElement('span');
+    cap.className='gallery-caption';
+    const capMd=document.createElement('span');
+    capMd.className='gallery-caption-md';
+    capMd.textContent=m.matchday||'Match';
+    const capScore=document.createElement('span');
+    capScore.className='gallery-caption-score';
+    capScore.textContent=`${m.hs}–${m.as}`;
+    cap.append(capMd,capScore);
+    tile.appendChild(cap);
+
+    tile.addEventListener('click',()=>openLightbox(i));
+    galleryGrid.appendChild(tile);
+  });
+}
+
+/* ============================ LIGHTBOX ============================ */
+
+let lightboxIndex=0;
+let lightboxTrigger=null;
+
+function lightboxData(){ return galleryData(); }
+
+function openLightbox(index){
+  const list=lightboxData();
+  if(!list.length) return;
+  lightboxTrigger=document.activeElement;
+  lightboxIndex=((index%list.length)+list.length)%list.length;
+  renderLightbox();
+  lightbox.hidden=false;
+  lightbox.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  requestAnimationFrame(()=>lightbox.classList.add('open'));
+  lbClose.focus();
+}
+
+function openLightboxForId(id){
+  const list=lightboxData();
+  const idx=list.findIndex(m=>m.id===id);
+  if(idx>=0) openLightbox(idx);
+}
+
+function closeLightbox(){
+  if(lightbox.hidden) return;
+  lightbox.classList.remove('open');
+  lightbox.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+  setTimeout(()=>{ if(!lightbox.classList.contains('open')) lightbox.hidden=true; },200);
+  if(lightboxTrigger && typeof lightboxTrigger.focus==='function') lightboxTrigger.focus();
+}
+
+function stepLightbox(delta){
+  const list=lightboxData();
+  if(list.length<2) return;
+  lightboxIndex=((lightboxIndex+delta)%list.length+list.length)%list.length;
+  renderLightbox();
+}
+
+function renderLightbox(){
+  const list=lightboxData();
+  const m=list[lightboxIndex];
+  if(!m){ closeLightbox(); return; }
+  let d;
+  try{ d=parse(m.raw); }
+  catch(e){ return; }
+  renderMatchToCanvas(lbCanvas,d);
+  lbMd.textContent=m.matchday||'Match';
+  lbScore.textContent=`${m.home} ${m.hs}–${m.as} ${m.away}`;
+  lbCount.textContent=`${lightboxIndex+1} / ${list.length}`;
+  const multi=list.length>1;
+  lbPrev.hidden=!multi;
+  lbNext.hidden=!multi;
+}
+
+lbClose.addEventListener('click',closeLightbox);
+lbBackdrop.addEventListener('click',closeLightbox);
+lbPrev.addEventListener('click',()=>stepLightbox(-1));
+lbNext.addEventListener('click',()=>stepLightbox(1));
+
+document.addEventListener('keydown',e=>{
+  if(lightbox.hidden) return;
+  if(e.key==='Escape') closeLightbox();
+  else if(e.key==='ArrowLeft') stepLightbox(-1);
+  else if(e.key==='ArrowRight') stepLightbox(1);
+  else if(e.key==='Tab'){
+    const focusable=[lbPrev,lbNext,lbClose].filter(b=>!b.hidden);
+    if(!focusable.length) return;
+    const idx=focusable.indexOf(document.activeElement);
+    e.preventDefault();
+    const next=e.shiftKey
+      ? focusable[(idx<=0?focusable.length-1:idx-1)]
+      : focusable[(idx===focusable.length-1||idx===-1?0:idx+1)];
+    next.focus();
+  }
+});
+
+// Touch swipe: left/right on the stage steps through the gallery.
+let touchX=null, touchY=null, touchT=0;
+lbStage.addEventListener('touchstart',e=>{
+  const t=e.changedTouches[0];
+  touchX=t.clientX; touchY=t.clientY; touchT=Date.now();
+},{passive:true});
+lbStage.addEventListener('touchend',e=>{
+  if(touchX===null) return;
+  const t=e.changedTouches[0];
+  const dx=t.clientX-touchX, dy=t.clientY-touchY, dt=Date.now()-touchT;
+  touchX=null;
+  if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy) && dt<600){
+    stepLightbox(dx<0?1:-1);
+  }
+},{passive:true});
+
+/* ============================ PLAYER STATS ============================ */
+
+function seasonStats(){
+  const totals={};
+  loadLog().forEach(entry=>{
+    let d;
+    try{ d=parse(entry.raw); }
+    catch(e){ return; }
+    collectPlayers(d).forEach(p=>{
+      const t=totals[p.name] ||= {apps:0,g:0,a:0};
+      t.apps++; t.g+=p.g; t.a+=p.a;
+    });
+  });
+  return Object.entries(totals)
+    .map(([name,v])=>({name,apps:v.apps,g:v.g,a:v.a,ga:v.g+v.a}))
+    .sort((x,y)=>(y.ga-x.ga)||(y.g-x.g)||x.name.localeCompare(y.name));
+}
+
+function renderPlayerStats(){
+  const rows=seasonStats();
+  statsTable.textContent='';
+
+  if(!rows.length){
+    statsSubtitle.textContent='';
+    const empty=document.createElement('div');
+    empty.className='empty-state';
+    empty.textContent='No player stats yet — build a match to get started.';
+    statsTable.appendChild(empty);
+    return;
+  }
+
+  statsSubtitle.textContent=`${rows.length} player${rows.length===1?'':'s'} · across your match log`;
+
+  const head=document.createElement('div');
+  head.className='stats-row stats-head';
+  ['#','Player','Apps','G','A','G+A'].forEach(h=>{
+    const c=document.createElement('span'); c.textContent=h; head.appendChild(c);
+  });
+  statsTable.appendChild(head);
+
+  rows.forEach((p,i)=>{
+    const row=document.createElement('div');
+    row.className='stats-row'+(i<3?' top':'');
+    const cells=[String(i+1),p.name,String(p.apps),String(p.g),String(p.a),String(p.ga)];
+    cells.forEach((v,ci)=>{
+      const c=document.createElement('span');
+      c.textContent=v;
+      if(ci===0) c.className='stats-rank';
+      if(ci===1) c.className='stats-name';
+      if(ci===5) c.className='stats-ga';
+      row.appendChild(c);
+    });
+    statsTable.appendChild(row);
+  });
+}
+
+/* ============================ MASTHEAD ============================ */
+
+function updateMastheadStat(){
+  const matches=loadLog();
+  if(!matches.length){ mastheadStat.hidden=true; return; }
+  const playerCount=seasonStats().length;
+  mastheadStat.hidden=false;
+  mastheadStat.textContent=`${matches.length} match${matches.length===1?'':'es'} · ${playerCount} player${playerCount===1?'':'s'}`;
+}
+
+function refreshAll(){
+  renderLog();
+  renderGallery();
+  renderPlayerStats();
+  updateMastheadStat();
 }
 
 /* ============================ UI WIRING ============================ */
@@ -1157,7 +1626,7 @@ function build(){
     alert(err.message);
     return;
   }
-  draw(d);
+  renderMatchToCanvas(canvas,d);
   addToLog(d,data.value);
   outputPanel.hidden=false;
   openPackage(false);
@@ -1212,11 +1681,12 @@ document.getElementById('clear').addEventListener('click',resetInterface);
 clearLogBtn.addEventListener('click',()=>{
   if(confirm('Delete every match in the log? This cannot be undone.')){
     persistLog([]);
-    renderLog();
+    thumbCache.clear();
+    refreshAll();
   }
 });
 
-renderLog();
+refreshAll();
 })();
 </script>
 </body>

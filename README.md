@@ -43,7 +43,7 @@ Opponent 22’ 28’ 37’ 60’ 76’
 Every match you build is saved to a log in the browser, below the builder.
 The log shows a running record — played, won, drawn, lost, scored, conceded —
 and one row per match. Each row can be rebuilt (↻) to regenerate its graphic,
-or deleted (✕).
+or deleted (✕), or tapped to open it in the gallery.
 
 Rebuilding a match that already has a `Matchday X` label updates that entry
 rather than adding a duplicate, so correcting a typo and rebuilding keeps the
@@ -52,6 +52,27 @@ log clean.
 The log lives in the browser's local storage on the device you used. It is not
 uploaded anywhere, and it will not follow you to another phone or browser.
 Clearing your browser data clears the log.
+
+## Graphic gallery
+
+Every match in the log gets a thumbnail in the **Graphic gallery**. Tap any
+thumbnail to open it full-size, then use the ‹ › arrows (or swipe, or the
+left/right arrow keys) to flip through every match you've built, oldest to
+newest. Nothing extra is stored for this — thumbnails and the full-size view
+are both regenerated on the fly from the same match text already saved in the
+log, so the gallery can't drift out of sync with it and doesn't add to your
+browser's storage usage.
+
+## Player stats
+
+The **Player stats** panel is a season leaderboard, aggregated automatically
+across every match in your log: appearances, goals, assists, and combined
+G+A, ranked highest first. It updates the moment you build, rebuild, or
+delete a match — there's nothing to save separately.
+
+Note: a player is aggregated by the exact name you typed, so keep spelling
+consistent across weeks (e.g. always "Mckeown", not "McKeown" one week and
+"Mckeown" the next) for their stats to combine correctly.
 
 ## Deploying with GitHub Pages
 
