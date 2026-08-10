@@ -38,6 +38,37 @@ Opponent 22’ 28’ 37’ 60’ 76’
    the Share Sheet so you can save straight to Photos. After a successful
    save, the form resets automatically for the next match.
 
+## Bulk paste (a whole season at once)
+
+Paste more than one match — each separated by a blank line — and the app
+detects it automatically. The **Confirm & Build Graphic** button relabels
+itself to show how many matches it found (e.g. "Confirm & Build 6 Graphics"),
+and building adds every one of them to the gallery, player stats, and match
+log in a single step.
+
+```
+Matchday 1
+Great Colne 6-5 Opponent
+Mckeown 14’ 25’ 69’ 94’ ⚽️🅰️🅰️🅰️
+Maximus 74’ 87’ 94’ 🅰️⚽️⚽️
+Opponent 22’ 28’ 37’ 60’ 76’
+
+Matchday 2
+Great Colne 5-6 Opponent
+Maximus 7’ 11’ 41’ 59’ 84’ ⚽️⚽️⚽️⚽️🅰️
+Mckeown 11’ 41’ 59’ 🅰️🅰️🅰️
+Opponent 18’ 34’ 45’ 77’ 90’+2 102’
+```
+
+If any one match in the paste can't be read, nothing is added — you get an
+alert naming which match (by its `Matchday X` label, or its position) needs
+fixing, and the rest of the batch is left untouched until you fix it and
+build again.
+
+After a bulk build, a **Save all to Camera Roll** button appears: on iPhone
+it opens the Share Sheet with every graphic at once (choose **Save Images**);
+on desktop your browser may ask permission to allow multiple downloads.
+
 ## Match log
 
 Every match you build is saved to a log in the browser, below the builder.

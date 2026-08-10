@@ -140,6 +140,7 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
   transition:transform .12s ease,filter .15s ease,background .15s ease;
 }
 .btn:active{transform:scale(.975)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
 .btn.primary,.btn.save{
   background:linear-gradient(160deg,#5cf494,var(--green));
   color:#04180d;
@@ -211,7 +212,30 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
 }
 
 /* ---------- gallery ---------- */
-.gallery-panel{margin-top:16px}
+.gallery-panel,.bulk-panel{margin-top:16px}
+.bulk-panel{border-color:rgba(62,232,127,.4)}
+.bulk-panel .panel-title{display:flex;align-items:center;gap:8px}
+.bulk-badge{
+  display:inline-flex;align-items:center;
+  padding:3px 9px;border-radius:20px;
+  background:rgba(62,232,127,.14);border:1px solid rgba(62,232,127,.4);
+  color:var(--green);font-size:11px;font-weight:900;
+}
+.bulk-list{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.bulk-list-item{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 12px;border-radius:11px;
+  background:var(--panel-3);border:1px solid var(--line);
+  font-size:12.5px;font-weight:800;
+}
+.bulk-list-item .k{color:var(--text-3);font-weight:900;letter-spacing:.04em;text-transform:uppercase;font-size:10px}
+.bulk-hint-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:10px;padding:8px 12px;
+  border-radius:11px;
+  background:rgba(62,232,127,.1);border:1px solid rgba(62,232,127,.35);
+  color:var(--green);font-size:12px;font-weight:800;
+}
 .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}
 .gallery-tile{
   position:relative;
@@ -382,9 +406,10 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
 
     <section class="panel">
       <h2 class="panel-title">Match data</h2>
-      <p class="panel-sub">Paste your match summary. Minutes pair with the symbols in order.</p>
+      <p class="panel-sub">Paste one match, or paste several separated by a blank line to build them all at once.</p>
       <textarea id="data" class="paste" spellcheck="false" autocapitalize="off" autocorrect="off"
         placeholder="Matchday 1&#10;Great Colne 6-5 Opponent🟩&#10;Mckeown 14’ 25’ ⚽️🅰️"></textarea>
+      <p id="bulkHint" class="bulk-hint-badge" hidden></p>
       <div class="buttons">
         <button id="sample" class="btn ghost" type="button">Sample</button>
         <button id="clear" class="btn ghost" type="button">Clear</button>
@@ -412,6 +437,14 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
     </section>
 
   </div>
+
+  <section class="panel bulk-panel" id="bulkPanel" hidden>
+    <h2 class="panel-title">Bulk build complete <span id="bulkBadge" class="bulk-badge"></span></h2>
+    <p class="panel-sub" id="bulkSummary"></p>
+    <div id="bulkList" class="bulk-list"></div>
+    <button id="saveAllBtn" class="btn save" type="button">💾 Save all to Camera Roll</button>
+    <p class="hint">On iPhone this opens the Share Sheet with every graphic at once — choose <b>Save Images</b>. On desktop your browser may ask to allow multiple downloads. Every match is also in the gallery and match log below.</p>
+  </section>
 
   <section class="panel gallery-panel">
     <div class="panel-head">
@@ -490,10 +523,17 @@ const C={
 const data=document.getElementById('data');
 const canvas=document.getElementById('canvas');
 let ctx=canvas.getContext('2d');
+const buildBtn=document.getElementById('build');
+const bulkHint=document.getElementById('bulkHint');
 const outputPanel=document.getElementById('outputPanel');
 const pkg=document.getElementById('pkg');
 const pkgSub=document.getElementById('pkgSub');
 const preview=document.getElementById('preview');
+const bulkPanel=document.getElementById('bulkPanel');
+const bulkBadge=document.getElementById('bulkBadge');
+const bulkSummary=document.getElementById('bulkSummary');
+const bulkList=document.getElementById('bulkList');
+const saveAllBtn=document.getElementById('saveAllBtn');
 const logList=document.getElementById('logList');
 const logSummary=document.getElementById('logSummary');
 const clearLogBtn=document.getElementById('clearLog');
@@ -516,6 +556,25 @@ const lbScore=document.getElementById('lbScore');
 
 /* ============================ PARSING ============================ */
 /* The input contract is unchanged. */
+
+// Splits a paste into one raw block per match, on one-or-more blank lines.
+// A single match with no blank lines produces exactly one block, so this
+// runs unconditionally ahead of parse() without changing single-match
+// behavior at all.
+function splitMatchBlocks(raw){
+  const lines=(raw||'').split(/\r?\n/);
+  const blocks=[];
+  let current=[];
+  for(const line of lines){
+    if(line.trim()===''){
+      if(current.length){ blocks.push(current.join('\n')); current=[]; }
+    }else{
+      current.push(line);
+    }
+  }
+  if(current.length) blocks.push(current.join('\n'));
+  return blocks;
+}
 
 function parse(raw){
   const lines = raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
@@ -1194,6 +1253,22 @@ function renderMatchToCanvas(targetCanvas,d){
   draw(d);
 }
 
+// Renders one match to a full-resolution offscreen canvas and resolves with
+// its PNG blob. Used for bulk "save all", where each match needs its own
+// image rather than sharing the single visible builder canvas.
+function renderMatchBlob(d){
+  return new Promise(resolve=>{
+    const off=document.createElement('canvas');
+    off.width=1080; off.height=1920;
+    renderMatchToCanvas(off,d);
+    off.toBlob(resolve,'image/png');
+  });
+}
+
+function filenameSlug(s){
+  return (s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+
 /* ============================ MATCH LOG ============================ */
 
 const LOG_KEY='mgb.matchLog.v1';
@@ -1225,8 +1300,9 @@ function sortLog(list){
   });
 }
 
-function addToLog(d,raw){
-  const list=loadLog();
+// Rebuilding a labelled matchday updates that entry rather than duplicating
+// it. Shared by the single-match and bulk paths so both dedupe the same way.
+function upsertLogEntry(list,d,raw){
   const entry={
     id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
     matchday:d.matchday||'',
@@ -1234,13 +1310,27 @@ function addToLog(d,raw){
     raw,
     at:new Date().toISOString()
   };
-  // Rebuilding a labelled matchday updates that entry rather than duplicating it.
   const key=(d.matchday||'').trim().toLowerCase();
   let idx=-1;
   if(key) idx=list.findIndex(x=>(x.matchday||'').trim().toLowerCase()===key);
   else idx=list.findIndex(x=>x.raw===raw);
 
   if(idx>=0) list[idx]=entry; else list.push(entry);
+  return entry;
+}
+
+function addToLog(d,raw){
+  const list=loadLog();
+  upsertLogEntry(list,d,raw);
+  persistLog(sortLog(list));
+  refreshAll();
+}
+
+// Bulk paste: every match is upserted into one in-memory list, then persisted
+// and rendered exactly once, instead of once per match.
+function addManyToLog(items){
+  const list=loadLog();
+  items.forEach(({d,raw})=>upsertLogEntry(list,d,raw));
   persistLog(sortLog(list));
   refreshAll();
 }
@@ -1615,22 +1705,143 @@ function openPackage(open){
 function resetInterface(){
   data.value='';
   outputPanel.hidden=true;
+  bulkPanel.hidden=true;
+  lastBulkBatch=[];
   openPackage(false);
+  updateBulkHint();
 }
 
+// Live feedback on whether the current paste will build one graphic or many,
+// updated as the user types/pastes and whenever data.value is set from code.
+function updateBulkHint(){
+  const n=splitMatchBlocks(data.value).length;
+  if(n>1){
+    buildBtn.textContent=`✓ Confirm & Build ${n} Graphics`;
+    bulkHint.hidden=false;
+    bulkHint.textContent=`🗂 ${n} matches detected — building will add all of them.`;
+  }else{
+    buildBtn.textContent='✓ Confirm & Build Graphic';
+    bulkHint.hidden=true;
+  }
+}
+data.addEventListener('input',updateBulkHint);
+
+let lastBulkBatch=[];
+
 function build(){
-  let d;
-  try{
-    d=parse(data.value);
-  }catch(err){
-    alert(err.message);
+  const raw=data.value;
+  const blocks=splitMatchBlocks(raw);
+
+  // A single match (or a paste with no blank-line separators) behaves
+  // exactly as before: one graphic, shown in the compact package preview.
+  if(blocks.length<=1){
+    let d;
+    try{
+      d=parse(raw);
+    }catch(err){
+      alert(err.message);
+      return;
+    }
+    renderMatchToCanvas(canvas,d);
+    addToLog(d,raw);
+    bulkPanel.hidden=true;
+    outputPanel.hidden=false;
+    openPackage(false);
+    pkg.scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
-  renderMatchToCanvas(canvas,d);
-  addToLog(d,data.value);
-  outputPanel.hidden=false;
+
+  // Bulk paste: every block is validated before anything is added to the
+  // log, so one bad match doesn't leave the log half-updated.
+  const parsed=[];
+  for(let i=0;i<blocks.length;i++){
+    let d;
+    try{
+      d=parse(blocks[i]);
+    }catch(err){
+      const label=(blocks[i].match(/^Matchday\s+\d+/i)||[])[0] || `Match ${i+1}`;
+      alert(`${label}: ${err.message}`);
+      return;
+    }
+    parsed.push({d,raw:blocks[i]});
+  }
+
+  addManyToLog(parsed);
+  lastBulkBatch=parsed.map(p=>p.d);
+
+  outputPanel.hidden=true;
   openPackage(false);
-  pkg.scrollIntoView({behavior:'smooth',block:'center'});
+
+  bulkBadge.textContent=`${parsed.length} matches`;
+  bulkSummary.textContent='Every match below has been added to your gallery and match log. Save them all at once, or open any one of them from the gallery.';
+  bulkList.textContent='';
+  parsed.forEach(({d})=>{
+    const row=document.createElement('div');
+    row.className='bulk-list-item';
+    const label=document.createElement('span');
+    label.className='k';
+    label.textContent=d.matchday||'Match';
+    const score=document.createElement('span');
+    // textContent: team names come from user input.
+    score.textContent=`${d.home} ${d.hs}–${d.as} ${d.away}`;
+    row.append(label,score);
+    bulkList.appendChild(row);
+  });
+
+  bulkPanel.hidden=false;
+  bulkPanel.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// Renders and saves every match from the last bulk build in one go: a single
+// multi-file Share Sheet call when supported, otherwise staggered downloads.
+async function saveAllGraphics(items){
+  if(!items.length) return;
+  const original=saveAllBtn.textContent;
+  saveAllBtn.disabled=true;
+  saveAllBtn.textContent='Preparing images…';
+
+  const files=[];
+  for(let i=0;i<items.length;i++){
+    const d=items[i];
+    const blob=await renderMatchBlob(d);
+    if(!blob) continue;
+    const slug=filenameSlug(d.matchday) || filenameSlug(`${d.home}-vs-${d.away}`) || `match-${i+1}`;
+    files.push(new File([blob],`match-graphic-1080x1920-${slug}.png`,{type:'image/png'}));
+  }
+
+  saveAllBtn.disabled=false;
+  saveAllBtn.textContent=original;
+
+  if(!files.length){ alert('Could not create the images.'); return; }
+
+  let saved=false;
+  if(navigator.share && navigator.canShare && navigator.canShare({files})){
+    try{
+      await navigator.share({title:'Match Graphics',files});
+      saved=true;
+    }catch(e){
+      // A cancelled share sheet must not wipe the user's pasted data.
+      if(e && e.name==='AbortError') return;
+    }
+  }
+
+  if(!saved){
+    files.forEach((file,i)=>{
+      setTimeout(()=>{
+        const url=URL.createObjectURL(file);
+        const a=document.createElement('a');
+        a.href=url;
+        a.download=file.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),5000);
+      },i*300);
+    });
+    saved=true;
+  }
+
+  if(saved) resetInterface();
 }
 
 function save(){
@@ -1665,14 +1876,17 @@ function save(){
   },'image/png');
 }
 
-document.getElementById('build').addEventListener('click',build);
+buildBtn.addEventListener('click',build);
 document.getElementById('save').addEventListener('click',save);
+saveAllBtn.addEventListener('click',()=>saveAllGraphics(lastBulkBatch));
 pkg.addEventListener('click',()=>openPackage(!preview.classList.contains('open')));
 
 document.getElementById('sample').addEventListener('click',()=>{
   data.value=SAMPLE;
   outputPanel.hidden=true;
+  bulkPanel.hidden=true;
   openPackage(false);
+  updateBulkHint();
   data.focus();
 });
 
@@ -1686,6 +1900,7 @@ clearLogBtn.addEventListener('click',()=>{
   }
 });
 
+updateBulkHint();
 refreshAll();
 })();
 </script>
