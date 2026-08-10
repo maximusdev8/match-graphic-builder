@@ -211,6 +211,38 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
   grid-column:1/-1;
 }
 
+/* ---------- highlight video ---------- */
+.video-panel{margin-top:16px}
+.video-drop{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;
+  padding:26px 16px;
+  border:2px dashed var(--line-2);
+  border-radius:16px;
+  background:#0b1310;
+  cursor:pointer;
+  text-align:center;
+  transition:border-color .15s ease,background .15s ease;
+}
+.video-drop:hover{border-color:var(--green);background:#0e1a15}
+.video-drop.has-file{border-style:solid;border-color:var(--green);background:#0d1a14}
+.video-drop-icon{font-size:26px;line-height:1}
+.video-drop-title{font-size:14px;font-weight:900;color:var(--text)}
+.video-drop-sub{font-size:11.5px;font-weight:700;color:var(--text-3)}
+
+.trim-wrap{margin-top:14px}
+.trim-video{width:100%;border-radius:14px;background:#000;display:block;max-height:420px}
+.trim-slider{width:100%;margin-top:10px;accent-color:var(--green)}
+.trim-readout{display:flex;justify-content:space-between;font-size:11.5px;font-weight:800;color:var(--text-3);margin-top:4px}
+
+.video-progress{margin-top:14px}
+.video-progress-bar{height:8px;border-radius:6px;background:#16211d;overflow:hidden}
+.video-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),#5cf494);width:4%;transition:width .25s ease}
+.video-progress-label{margin-top:8px;font-size:12.5px;font-weight:800;color:var(--text-2);text-align:center}
+
+.video-result{margin-top:16px}
+.video-result video{width:100%;max-width:360px;display:block;margin:0 auto;border-radius:16px;border:1px solid var(--line)}
+
 /* ---------- gallery ---------- */
 .gallery-panel,.bulk-panel{margin-top:16px}
 .bulk-panel{border-color:rgba(62,232,127,.4)}
@@ -421,6 +453,48 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
     <p class="hint">On iPhone this opens the Share Sheet with every graphic at once — choose <b>Save Images</b>. On desktop your browser may ask to allow multiple downloads. Every match is also in the gallery and match log below.</p>
   </section>
 
+  <section class="panel video-panel">
+    <h2 class="panel-title">Highlight video</h2>
+    <p class="panel-sub">Turn a short clip (up to 15s works best) into a TikTok-ready highlight with an opening hook and a persistent score badge — processed entirely on your device, nothing is uploaded anywhere.</p>
+
+    <label id="videoDrop" class="video-drop" for="videoFile">
+      <span class="video-drop-icon">🎬</span>
+      <span class="video-drop-title" id="videoDropTitle">Tap to choose a video</span>
+      <span class="video-drop-sub" id="videoDropSub">MP4/MOV · vertical works best · up to ~150MB</span>
+    </label>
+    <input type="file" id="videoFile" accept="video/*" hidden>
+
+    <div id="trimWrap" class="trim-wrap" hidden>
+      <video id="trimPreview" class="trim-video" muted playsinline></video>
+      <input type="range" id="trimSlider" class="trim-slider" min="0" max="0" value="0" step="0.1">
+      <div class="trim-readout">
+        <span id="trimStart">0.0s</span>
+        <span>Drag to choose your 15s window</span>
+        <span id="trimEnd">15.0s</span>
+      </div>
+    </div>
+
+    <textarea id="videoInfo" class="paste" spellcheck="false" autocapitalize="off" autocorrect="off"
+      placeholder="Matchday 5&#10;Great Colne 2-1 Opponent&#10;Maximus 87' screamer from 30 yards"></textarea>
+
+    <div class="buttons">
+      <button id="videoClear" class="btn ghost" type="button">Clear</button>
+      <button id="videoBuild" class="btn primary" type="button">✓ Build Highlight Video</button>
+    </div>
+    <p class="hint">First use downloads a one-time ~30MB video engine (cached after that). Processing runs on your device and can take anywhere from a few seconds to around a minute depending on your phone.</p>
+
+    <div id="videoProgress" class="video-progress" hidden>
+      <div class="video-progress-bar"><div id="videoProgressFill" class="video-progress-fill"></div></div>
+      <div id="videoProgressLabel" class="video-progress-label">Starting…</div>
+    </div>
+
+    <div id="videoResult" class="video-result" hidden>
+      <video id="videoOutput" controls playsinline></video>
+      <button id="videoSave" class="btn save" type="button" style="margin-top:12px">📸 Save Highlight Video</button>
+      <p class="hint">On iPhone this opens the Share Sheet — choose <b>Save Video</b> to put it in Photos.</p>
+    </div>
+  </section>
+
   <section class="panel gallery-panel">
     <div class="panel-head">
       <h2 class="panel-title">Graphic gallery</h2>
@@ -535,6 +609,25 @@ const galleryCount=document.getElementById('galleryCount');
 const statsTable=document.getElementById('statsTable');
 const statsSubtitle=document.getElementById('statsSubtitle');
 const exportStatsBtn=document.getElementById('exportStatsBtn');
+
+const videoDrop=document.getElementById('videoDrop');
+const videoDropTitle=document.getElementById('videoDropTitle');
+const videoDropSub=document.getElementById('videoDropSub');
+const videoFileInput=document.getElementById('videoFile');
+const trimWrap=document.getElementById('trimWrap');
+const trimPreview=document.getElementById('trimPreview');
+const trimSlider=document.getElementById('trimSlider');
+const trimStartLabel=document.getElementById('trimStart');
+const trimEndLabel=document.getElementById('trimEnd');
+const videoInfo=document.getElementById('videoInfo');
+const videoBuildBtn=document.getElementById('videoBuild');
+const videoClearBtn=document.getElementById('videoClear');
+const videoProgress=document.getElementById('videoProgress');
+const videoProgressFill=document.getElementById('videoProgressFill');
+const videoProgressLabel=document.getElementById('videoProgressLabel');
+const videoResult=document.getElementById('videoResult');
+const videoOutput=document.getElementById('videoOutput');
+const videoSaveBtn=document.getElementById('videoSave');
 
 const lightbox=document.getElementById('lightbox');
 const lbBackdrop=document.getElementById('lbBackdrop');
@@ -2173,6 +2266,332 @@ clearLogBtn.addEventListener('click',()=>{
     refreshAll();
   }
 });
+
+/* ============================ HIGHLIGHT VIDEO ============================ */
+/* Entirely client-side: ffmpeg.wasm (vendored under vendor/ffmpeg, no CDN,
+   no backend) runs in the visitor's own browser. The engine is a ~30MB
+   one-time download, loaded lazily on first use so it never affects the
+   rest of the site's load time. */
+
+let ffmpegPromise=null;
+let ffmpegProgressHandler=null;
+
+function loadFFmpegEngine(){
+  if(ffmpegPromise) return ffmpegPromise;
+  ffmpegPromise=(async()=>{
+    const [{FFmpeg},{toBlobURL}]=await Promise.all([
+      import('./vendor/ffmpeg/ffmpeg/index.js'),
+      import('./vendor/ffmpeg/util/index.js')
+    ]);
+    const ffmpeg=new FFmpeg();
+    ffmpeg.on('progress',({progress})=>{
+      if(ffmpegProgressHandler && typeof progress==='number'){
+        ffmpegProgressHandler(clamp(progress,0,1));
+      }
+    });
+    const base='./vendor/ffmpeg/core';
+    const coreURL=await toBlobURL(`${base}/ffmpeg-core.js`,'text/javascript');
+    const wasmURL=await toBlobURL(`${base}/ffmpeg-core.wasm`,'application/wasm');
+    await ffmpeg.load({coreURL,wasmURL});
+    return ffmpeg;
+  })();
+  return ffmpegPromise;
+}
+
+// A dedicated lightweight parser for the video panel: matchday + score line
+// (same grammar as the main parser's score line, for one consistent format
+// across the site) plus a free-text "what happened" line. No event symbols
+// needed here — this is one highlight, not a full match log.
+function parseHighlightInfo(raw){
+  const lines=(raw||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(!lines.length) throw new Error('Add the game info and what happened.');
+
+  let matchday='';
+  if(/^Matchday\s+\d+$/i.test(lines[0])) matchday=lines.shift().trim();
+
+  const first=lines.shift()||'';
+  const m=first.match(/^(.*?)\s+(\d+)\s*-\s*(\d+)\s+(.*?)(?:🟩|🟥)?$/u);
+  if(!m) throw new Error("I couldn't read the score line. Example: Great Colne 6-5 Opponent🟩");
+
+  const home=m[1].trim(), hs=+m[2], as=+m[3], away=m[4].replace(/[🟩🟥]/gu,'').trim();
+  const whatHappened=lines.join(' ').trim();
+  if(!whatHappened) throw new Error('Add a line describing what happened, e.g. "Maximus 87\' screamer from 30 yards".');
+
+  return {matchday,home,hs,as,away,whatHappened};
+}
+
+// Splits text into a balanced 2-line wrap (rather than truncating) when it
+// won't fit on one line at any readable size.
+function wrapToTwoLines(t){
+  const words=t.split(' ');
+  if(words.length<2) return [t];
+  let best=1,bestDiff=Infinity;
+  for(let i=1;i<words.length;i++){
+    const l1=words.slice(0,i).join(' '), l2=words.slice(i).join(' ');
+    const diff=Math.abs(measure(l1,40,'950')-measure(l2,40,'950'));
+    if(diff<bestDiff){bestDiff=diff;best=i;}
+  }
+  return [words.slice(0,best).join(' '),words.slice(best).join(' ')];
+}
+
+function fitHookLines(t,maxWidth,maxSize,minSize){
+  const upper=t.toUpperCase();
+  for(let size=maxSize;size>=minSize;size-=2){
+    if(measure(upper,size,'950')<=maxWidth) return {lines:[upper],size};
+  }
+  const wrapped=wrapToTwoLines(upper);
+  for(let size=maxSize;size>=minSize;size-=2){
+    if(wrapped.every(l=>measure(l,size,'950')<=maxWidth)) return {lines:wrapped,size};
+  }
+  return {lines:wrapped,size:minSize};
+}
+
+// Full-frame, transparent overlay: the attention-grabbing hook, composited
+// over roughly the first 1.5s of the clip. Reuses the same box/text/hexA
+// primitives as the match graphic, just against a transparent backdrop
+// instead of paintBackground(). The "what happened" line is the dominant
+// element — that's the hook — with match context as smaller supporting text.
+function drawVideoHook(info){
+  ctx.clearRect(0,0,1080,1920);
+
+  const cardX=90,cardW=900;
+  const md=(info.matchday||'').trim().toUpperCase();
+  const scoreLine=`${info.home.toUpperCase()} ${info.hs}-${info.as} ${info.away.toUpperCase()}`;
+
+  const {lines,size}=fitHookLines(info.whatHappened,cardW-100,58,32);
+  const lineGap=size*1.18;
+  const hookBlockH=lines.length*lineGap;
+  const cardH=200+hookBlockH;
+  const cardY=760-cardH/2;
+
+  box(cardX,cardY,cardW,cardH,26,'rgba(6,13,10,.88)',hexA(C.green,.65),3);
+
+  let y=cardY+50;
+  if(md){
+    textSpaced(md,540,y,15,'900',C.green,'center',2.4);
+    y+=34;
+  }
+  text(scoreLine,540,y,fitText(scoreLine,cardW-80,26,'800',15),'800',C.text2,'center');
+  y+=48;
+
+  lines.forEach((line,i)=>{
+    text(line,540,y+i*lineGap,size,'950',C.text,'center');
+  });
+}
+
+// Small, persistent score badge — on screen for the whole clip, anchored
+// top-left so it never competes with TikTok's own UI (captions and the
+// like/comment/share column live bottom-right) or the highlight itself.
+function drawVideoBadge(info){
+  ctx.clearRect(0,0,1080,1920);
+
+  const label=`${info.home.toUpperCase()} ${info.hs}-${info.as} ${info.away.toUpperCase()}`;
+  const size=fitText(label,760,30,'900',18);
+  const hasMd=!!info.matchday;
+  const w=measure(label,size,'900')+(hasMd?150:56);
+  const h=64;
+  const x=40,y=44;
+
+  box(x,y,w,h,16,'rgba(6,13,10,.78)',hexA(C.green,.55),2);
+
+  let tx=x+26;
+  if(hasMd){
+    const mdNum=(info.matchday.match(/\d+/)||[''])[0];
+    box(x+14,y+12,40,40,10,hexA(C.green,.16),hexA(C.green,.6),2);
+    text(mdNum,x+34,y+32,18,'950',C.green,'center');
+    tx=x+70;
+  }
+  text(label,tx,y+h/2,size,'900',C.text,'left');
+}
+
+function canvasToBlob(c){
+  return new Promise(resolve=>c.toBlob(resolve,'image/png'));
+}
+
+function setVideoProgress(open,fraction,label){
+  videoProgress.hidden=!open;
+  if(open){
+    videoProgressFill.style.width=Math.max(4,Math.round(fraction*100))+'%';
+    videoProgressLabel.textContent=label;
+  }
+}
+
+/* ---- file selection + trim window ---- */
+
+let selectedVideoFile=null;
+let trimStart=0;
+const MAX_CLIP=15;
+
+videoFileInput.addEventListener('change',()=>{
+  const file=videoFileInput.files && videoFileInput.files[0];
+  if(!file) return;
+  selectedVideoFile=file;
+  videoDrop.classList.add('has-file');
+  videoDropTitle.textContent=file.name;
+  videoDropSub.textContent=`${(file.size/1024/1024).toFixed(1)} MB`+
+    (file.size>150*1024*1024 ? ' — large file, may be slow on a phone' : '');
+
+  const url=URL.createObjectURL(file);
+  trimPreview.src=url;
+  trimPreview.onloadedmetadata=()=>{
+    const dur=isFinite(trimPreview.duration)?trimPreview.duration:0;
+    if(dur>MAX_CLIP){
+      trimWrap.hidden=false;
+      trimSlider.max=Math.max(0,dur-MAX_CLIP).toFixed(1);
+      trimSlider.value='0';
+      trimStart=0;
+      trimStartLabel.textContent='0.0s';
+      trimEndLabel.textContent=MAX_CLIP.toFixed(1)+'s';
+      trimPreview.currentTime=0;
+    }else{
+      trimWrap.hidden=true;
+      trimStart=0;
+    }
+  };
+});
+
+trimSlider.addEventListener('input',()=>{
+  trimStart=parseFloat(trimSlider.value)||0;
+  trimStartLabel.textContent=trimStart.toFixed(1)+'s';
+  trimEndLabel.textContent=(trimStart+MAX_CLIP).toFixed(1)+'s';
+  trimPreview.currentTime=trimStart;
+});
+
+/* ---- build ---- */
+
+function resetVideoInterface(){
+  selectedVideoFile=null;
+  videoFileInput.value='';
+  videoDrop.classList.remove('has-file');
+  videoDropTitle.textContent='Tap to choose a video';
+  videoDropSub.textContent='MP4/MOV · vertical works best · up to ~150MB';
+  trimWrap.hidden=true;
+  trimStart=0;
+  videoInfo.value='';
+  videoResult.hidden=true;
+  setVideoProgress(false,0,'');
+  if(videoOutput.src) URL.revokeObjectURL(videoOutput.src);
+  videoOutput.removeAttribute('src');
+}
+
+async function buildHighlightVideo(){
+  if(!selectedVideoFile){ alert('Choose a video first.'); return; }
+  let info;
+  try{
+    info=parseHighlightInfo(videoInfo.value);
+  }catch(err){
+    alert(err.message);
+    return;
+  }
+
+  const sourceDur=isFinite(trimPreview.duration)?trimPreview.duration:MAX_CLIP;
+  const clipDuration=Math.min(MAX_CLIP,Math.max(0.5,sourceDur-trimStart));
+
+  videoBuildBtn.disabled=true;
+  videoResult.hidden=true;
+  setVideoProgress(true,0.05,'Loading video engine…');
+
+  try{
+    const ffmpeg=await loadFFmpegEngine();
+    ffmpegProgressHandler=p=>setVideoProgress(true,0.25+p*0.7,'Rendering highlight…');
+
+    setVideoProgress(true,0.15,'Preparing overlays…');
+    const hookCanvas=document.createElement('canvas');
+    hookCanvas.width=1080; hookCanvas.height=1920;
+    renderToCanvas(hookCanvas,()=>drawVideoHook(info));
+    const hookBlob=await canvasToBlob(hookCanvas);
+
+    const badgeCanvas=document.createElement('canvas');
+    badgeCanvas.width=1080; badgeCanvas.height=1920;
+    renderToCanvas(badgeCanvas,()=>drawVideoBadge(info));
+    const badgeBlob=await canvasToBlob(badgeCanvas);
+
+    const {fetchFile}=await import('./vendor/ffmpeg/util/index.js');
+
+    setVideoProgress(true,0.2,'Loading clip…');
+    const ext=(selectedVideoFile.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
+    const inputName=`input.${ext}`;
+    await ffmpeg.writeFile(inputName,await fetchFile(selectedVideoFile));
+    await ffmpeg.writeFile('badge.png',await fetchFile(badgeBlob));
+    await ffmpeg.writeFile('hook.png',await fetchFile(hookBlob));
+
+    setVideoProgress(true,0.25,'Rendering highlight…');
+    const filter=
+      "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[base];"+
+      "[base][1:v]overlay=0:0[withbadge];"+
+      "[2:v]fade=t=out:st=1.1:d=0.3:alpha=1[hookfaded];"+
+      "[withbadge][hookfaded]overlay=0:0:enable='between(t,0,1.5)'[out]";
+
+    await ffmpeg.exec([
+      '-ss',String(trimStart),
+      '-i',inputName,
+      '-i','badge.png',
+      '-i','hook.png',
+      '-t',String(clipDuration),
+      '-filter_complex',filter,
+      '-map','[out]','-map','0:a?',
+      '-r','30',
+      '-c:v','libx264','-preset','veryfast','-crf','21','-pix_fmt','yuv420p',
+      '-c:a','aac','-b:a','160k',
+      '-movflags','+faststart',
+      'output.mp4'
+    ]);
+
+    ffmpegProgressHandler=null;
+    setVideoProgress(true,0.97,'Finishing up…');
+    const outData=await ffmpeg.readFile('output.mp4');
+
+    for(const f of [inputName,'badge.png','hook.png','output.mp4']){
+      try{ await ffmpeg.deleteFile(f); }catch(e){/* best-effort cleanup */}
+    }
+
+    const blob=new Blob([outData.buffer],{type:'video/mp4'});
+    if(videoOutput.src) URL.revokeObjectURL(videoOutput.src);
+    videoOutput.src=URL.createObjectURL(blob);
+    videoOutput.dataset.filename=`highlight-${filenameSlug(info.matchday)||'clip'}.mp4`;
+
+    setVideoProgress(false,0,'');
+    videoResult.hidden=false;
+    videoResult.scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(err){
+    ffmpegProgressHandler=null;
+    console.error(err);
+    setVideoProgress(false,0,'');
+    alert("Couldn't process that video. Try a shorter clip or a smaller file, then try again.");
+  }finally{
+    videoBuildBtn.disabled=false;
+  }
+}
+
+async function saveHighlightVideo(){
+  if(!videoOutput.src) return;
+  const resp=await fetch(videoOutput.src);
+  const blob=await resp.blob();
+  const filename=videoOutput.dataset.filename||'highlight.mp4';
+  const file=new File([blob],filename,{type:'video/mp4'});
+
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({title:'Highlight Video',files:[file]});
+      return;
+    }catch(e){
+      if(e && e.name==='AbortError') return;
+    }
+  }
+
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+
+videoBuildBtn.addEventListener('click',buildHighlightVideo);
+videoClearBtn.addEventListener('click',resetVideoInterface);
+videoSaveBtn.addEventListener('click',saveHighlightVideo);
 
 updateBulkHint();
 refreshAll();
