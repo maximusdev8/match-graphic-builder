@@ -211,6 +211,28 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
   grid-column:1/-1;
 }
 
+/* ---------- competition filter ---------- */
+.comp-filter{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.comp-filter-label{
+  font-size:10px;font-weight:900;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.07em;flex:0 0 auto;
+}
+.comp-filter-select{
+  flex:1 1 auto;min-width:0;
+  appearance:none;
+  background:#050908 url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%238fa49b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 12px center;
+  color:var(--text);
+  border:1px solid var(--line-2);
+  border-radius:11px;
+  padding:9px 32px 9px 12px;
+  font-family:var(--font);
+  font-size:13px;font-weight:800;
+  cursor:pointer;
+  outline:none;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.comp-filter-select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(62,232,127,.13)}
+
 /* ---------- gallery ---------- */
 .gallery-panel,.bulk-panel{margin-top:16px}
 .bulk-panel{border-color:rgba(62,232,127,.4)}
@@ -321,6 +343,19 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
 /* ---------- match log ---------- */
 .log-panel{margin-top:16px}
 .log-list{display:grid;gap:9px}
+.log-group{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  margin-top:6px;padding:0 2px 7px;
+  border-bottom:1px solid var(--line);
+  font-size:11px;font-weight:900;
+  letter-spacing:.07em;text-transform:uppercase;
+  color:var(--green);
+}
+.log-group:first-child{margin-top:0}
+.log-group-count{
+  font-size:10px;font-weight:800;letter-spacing:.04em;
+  text-transform:none;color:var(--text-3);flex:0 0 auto;
+}
 .log-item{
   display:flex;align-items:center;gap:12px;
   padding:12px 13px;
@@ -445,6 +480,10 @@ button:focus-visible,.paste:focus-visible{outline:2px solid var(--green);outline
         <button id="exportStatsBtn" class="export-btn" type="button" hidden>📤 Export image</button>
       </div>
     </div>
+    <label id="statsFilterWrap" class="comp-filter" hidden>
+      <span class="comp-filter-label">Competition</span>
+      <select id="statsCompFilter" class="comp-filter-select"></select>
+    </label>
     <div id="statsTable" class="stats-table"></div>
   </section>
 
@@ -535,6 +574,8 @@ const galleryCount=document.getElementById('galleryCount');
 const statsTable=document.getElementById('statsTable');
 const statsSubtitle=document.getElementById('statsSubtitle');
 const exportStatsBtn=document.getElementById('exportStatsBtn');
+const statsFilterWrap=document.getElementById('statsFilterWrap');
+const statsCompFilter=document.getElementById('statsCompFilter');
 
 const lightbox=document.getElementById('lightbox');
 const lbBackdrop=document.getElementById('lbBackdrop');
@@ -569,9 +610,65 @@ function splitMatchBlocks(raw){
   return blocks;
 }
 
+// A competition heading on its own (blank line either side) is its own block.
+// It isn't a match — it relabels every match that follows it, until the next
+// heading.
+function isCompetitionBlock(block){
+  const lines=(block||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(lines.length!==1) return false;
+  const only=lines[0];
+  if(/^Matchday\s+\d+$/i.test(only)) return false;
+  if(/^ET$/i.test(only)) return false;
+  return !isScoreLine(only);
+}
+
+// Walks the blocks in order, carrying the current competition forward and
+// folding it into each match's own text. Storing it in the match's raw text
+// (rather than alongside it) means a rebuilt or re-parsed match recovers its
+// competition on its own, with no separate bookkeeping to drift out of sync.
+function resolveMatchBlocks(blocks){
+  const out=[];
+  let competition='';
+  for(const block of blocks){
+    if(isCompetitionBlock(block)){
+      competition=block.trim();
+      continue;
+    }
+    out.push({
+      raw:competition?`${competition}\n${block}`:block,
+      competition
+    });
+  }
+  return out;
+}
+
+// A score line is the one structural anchor every match block has, so it
+// doubles as the test for "is this line a competition heading?" — anything
+// leading a block that isn't a matchday label and isn't a score line is a
+// heading. Deliberately positional: a bare "Maximus" *after* the score line
+// is a player with no events, not a competition.
+function isScoreLine(line){
+  return /^(.*?)\s+\d+\s*-\s*\d+\s+(.*?)$/u.test((line||'').trim());
+}
+
+function stripResultMarkers(s){
+  return (s||'').replace(/[🟩🟥⬜]️?/gu,'');
+}
+
 function parse(raw){
   const lines = raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
   if(!lines.length) throw new Error("Please paste your match data.");
+
+  // Optional competition heading ahead of the matchday/score lines, e.g.
+  // "Division 5". Only treated as one when a score line follows it, so a
+  // malformed single line still fails with the score-line error below.
+  let competition = '';
+  if(lines.length>1 &&
+     !/^Matchday\s+\d+$/i.test(lines[0]) &&
+     !isScoreLine(lines[0]) &&
+     lines.slice(1).some(isScoreLine)){
+    competition = lines.shift().trim();
+  }
 
   let matchday = '';
   if(/^Matchday\s+\d+$/i.test(lines[0])){
@@ -579,16 +676,17 @@ function parse(raw){
   }
 
   const first = lines.shift() || '';
-  const m = first.match(/^(.*?)\s+(\d+)\s*-\s*(\d+)\s+(.*?)(?:🟩|🟥)?$/u);
+  const m = first.match(/^(.*?)\s+(\d+)\s*-\s*(\d+)\s+(.*?)(?:[🟩🟥⬜]️?)?$/u);
   if(!m) throw new Error("I couldn't read the score line. Example: Great Colne 6-5 Opponent🟩");
 
-  const resultMarker = (first.match(/[🟩🟥]/u)||[])[0] || '';
+  const resultMarker = (first.match(/[🟩🟥⬜]️?/u)||[])[0] || '';
   const out = {
+    competition,
     matchday,
     home:m[1].trim(),
     hs:+m[2],
     as:+m[3],
-    away:m[4].replace(/[🟩🟥]/gu,'').trim(),
+    away:stripResultMarkers(m[4]).trim(),
     resultMarker,
     events:[]
   };
@@ -630,7 +728,7 @@ function parse(raw){
     // Player-only lines are valid and must still appear in Player Stats
     // with 0 goals / 0 assists.
     if(!symbolMatch.length && !minuteMatches.length){
-      const playerOnly=line.replace(/[🟥🟩]/gu,'').trim();
+      const playerOnly=stripResultMarkers(line).trim();
       if(playerOnly && playerOnly.toLowerCase() !== 'et'){
         const isOpponentOnly =
           playerOnly.toLowerCase()===out.away.toLowerCase() ||
@@ -1317,11 +1415,13 @@ function drawPlayerStatsGraphic(){
   ctx.clearRect(0,0,W,H);
   paintBackground();
 
-  const rows=seasonStats();
-  const matches=loadLog();
+  const rows=seasonStats(statsCompetition);
+  const matches=matchesForCompetition(statsCompetition);
   const club=mostCommon(matches.map(m=>m.home));
 
-  const chip='SEASON STATS';
+  // The chip carries the competition when one is selected, so an exported
+  // image says what it's actually a leaderboard of.
+  const chip=(statsCompetition||'SEASON STATS').toUpperCase();
   const cw=measureSpaced(chip,21,'900',3.5)+56;
   box(540-cw/2,50,cw,46,23,hexA(C.green,.10),hexA(C.green,.55),2);
   textSpaced(chip,540,73,21,'900',C.green,'center',3.5);
@@ -1612,8 +1712,23 @@ function matchdayNumber(label){
   return m?Number(m[1]):null;
 }
 
+// Competitions keep the order they first appear in the log. sortLog persists
+// its own output, so that first-seen order stays stable across reloads
+// instead of re-deriving from something that could reshuffle.
+function competitionOrder(list){
+  const seen=[];
+  list.forEach(m=>{
+    const c=m.competition||'';
+    if(!seen.includes(c)) seen.push(c);
+  });
+  return seen;
+}
+
 function sortLog(list){
+  const order=competitionOrder(list);
   return list.sort((a,b)=>{
+    const ca=order.indexOf(a.competition||''), cb=order.indexOf(b.competition||'');
+    if(ca!==cb) return ca-cb;
     const na=matchdayNumber(a.matchday), nb=matchdayNumber(b.matchday);
     if(na!==null && nb!==null) return na-nb;
     if(na!==null) return -1;
@@ -1624,18 +1739,28 @@ function sortLog(list){
 
 // Rebuilding a labelled matchday updates that entry rather than duplicating
 // it. Shared by the single-match and bulk paths so both dedupe the same way.
+// The key is scoped to the competition, so "Matchday 1" of one competition
+// never overwrites "Matchday 1" of another.
 function upsertLogEntry(list,d,raw){
+  const competition=(d.competition||'').trim();
   const entry={
     id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+    competition,
     matchday:d.matchday||'',
     home:d.home, away:d.away, hs:d.hs, as:d.as,
     raw,
     at:new Date().toISOString()
   };
   const key=(d.matchday||'').trim().toLowerCase();
+  const compKey=competition.toLowerCase();
   let idx=-1;
-  if(key) idx=list.findIndex(x=>(x.matchday||'').trim().toLowerCase()===key);
-  else idx=list.findIndex(x=>x.raw===raw);
+  if(key){
+    idx=list.findIndex(x=>
+      (x.matchday||'').trim().toLowerCase()===key &&
+      (x.competition||'').trim().toLowerCase()===compKey);
+  }else{
+    idx=list.findIndex(x=>x.raw===raw);
+  }
 
   if(idx>=0) list[idx]=entry; else list.push(entry);
   return entry;
@@ -1707,7 +1832,27 @@ function renderLog(){
     logSummary.appendChild(c);
   });
 
+  // Group headers only appear once the log actually has competitions, so a
+  // log without any looks exactly as it did before.
+  const showGroups=list.some(m=>(m.competition||''));
+  let lastComp=null;
+
   list.forEach((m,i)=>{
+    const comp=m.competition||'';
+    if(showGroups && comp!==lastComp){
+      lastComp=comp;
+      const header=document.createElement('div');
+      header.className='log-group';
+      // textContent: competition names come from user input.
+      header.textContent=comp||'Uncategorised';
+      const count=list.filter(x=>(x.competition||'')===comp).length;
+      const badge=document.createElement('span');
+      badge.className='log-group-count';
+      badge.textContent=`${count} match${count===1?'':'es'}`;
+      header.appendChild(badge);
+      logList.appendChild(header);
+    }
+
     const item=document.createElement('div');
     item.className='log-item';
 
@@ -1888,9 +2033,24 @@ lbStage.addEventListener('touchend',e=>{
 
 /* ============================ PLAYER STATS ============================ */
 
-function seasonStats(){
+// '' means every competition — the default, and what a log with no
+// competition headings at all always uses.
+const ALL_COMPS='';
+let statsCompetition=ALL_COMPS;
+
+function logCompetitions(){
+  return competitionOrder(sortLog(loadLog())).filter(Boolean);
+}
+
+function matchesForCompetition(competition){
+  const list=sortLog(loadLog());
+  if(!competition) return list;
+  return list.filter(m=>(m.competition||'')===competition);
+}
+
+function seasonStats(competition){
   const totals={};
-  loadLog().forEach(entry=>{
+  matchesForCompetition(competition).forEach(entry=>{
     let d;
     try{ d=parse(entry.raw); }
     catch(e){ return; }
@@ -1904,8 +2064,39 @@ function seasonStats(){
     .sort((x,y)=>(y.ga-x.ga)||(y.g-x.g)||x.name.localeCompare(y.name));
 }
 
+// The dropdown only appears once there's something to choose between, so a
+// log with no competition headings looks exactly as it did before.
+function renderCompetitionFilter(){
+  const comps=logCompetitions();
+  if(!comps.length){
+    statsFilterWrap.hidden=true;
+    statsCompetition=ALL_COMPS;
+    return;
+  }
+
+  // A competition can disappear when its last match is deleted; fall back to
+  // all competitions rather than filtering to something that no longer exists.
+  if(statsCompetition && !comps.includes(statsCompetition)) statsCompetition=ALL_COMPS;
+
+  statsFilterWrap.hidden=false;
+  statsCompFilter.textContent='';
+  const optAll=document.createElement('option');
+  optAll.value=ALL_COMPS;
+  optAll.textContent='All competitions';
+  statsCompFilter.appendChild(optAll);
+  comps.forEach(c=>{
+    const o=document.createElement('option');
+    // textContent/value: competition names come from user input.
+    o.value=c; o.textContent=c;
+    statsCompFilter.appendChild(o);
+  });
+  statsCompFilter.value=statsCompetition;
+}
+
 function renderPlayerStats(){
-  const rows=seasonStats();
+  renderCompetitionFilter();
+  const rows=seasonStats(statsCompetition);
+  const scope=statsCompetition || 'all competitions';
   statsTable.textContent='';
 
   if(!rows.length){
@@ -1913,13 +2104,15 @@ function renderPlayerStats(){
     exportStatsBtn.hidden=true;
     const empty=document.createElement('div');
     empty.className='empty-state';
-    empty.textContent='No player stats yet — build a match to get started.';
+    empty.textContent=statsCompetition
+      ? `No player stats for ${statsCompetition} yet.`
+      : 'No player stats yet — build a match to get started.';
     statsTable.appendChild(empty);
     return;
   }
 
   exportStatsBtn.hidden=false;
-  statsSubtitle.textContent=`${rows.length} player${rows.length===1?'':'s'} · across your match log`;
+  statsSubtitle.textContent=`${rows.length} player${rows.length===1?'':'s'} · ${scope}`;
 
   const head=document.createElement('div');
   head.className='stats-row stats-head';
@@ -1981,11 +2174,15 @@ function resetInterface(){
 // Live feedback on whether the current paste will build one graphic or many,
 // updated as the user types/pastes and whenever data.value is set from code.
 function updateBulkHint(){
-  const n=splitMatchBlocks(data.value).length;
+  const items=resolveMatchBlocks(splitMatchBlocks(data.value));
+  const n=items.length;
+  const comps=[...new Set(items.map(x=>x.competition).filter(Boolean))];
   if(n>1){
     buildBtn.textContent=`✓ Confirm & Build ${n} Graphics`;
     bulkHint.hidden=false;
-    bulkHint.textContent=`🗂 ${n} matches detected — building will add all of them.`;
+    bulkHint.textContent=comps.length
+      ? `🗂 ${n} matches detected across ${comps.length} competition${comps.length===1?'':'s'} — building will add all of them.`
+      : `🗂 ${n} matches detected — building will add all of them.`;
   }else{
     buildBtn.textContent='✓ Confirm & Build Graphic';
     bulkHint.hidden=true;
@@ -1997,20 +2194,25 @@ let lastBulkBatch=[];
 
 function build(){
   const raw=data.value;
-  const blocks=splitMatchBlocks(raw);
+  const items=resolveMatchBlocks(splitMatchBlocks(raw));
+
+  if(!items.length){
+    alert('Please paste your match data.');
+    return;
+  }
 
   // A single match (or a paste with no blank-line separators) behaves
   // exactly as before: one graphic, shown in the compact package preview.
-  if(blocks.length<=1){
+  if(items.length<=1){
     let d;
     try{
-      d=parse(raw);
+      d=parse(items[0].raw);
     }catch(err){
       alert(err.message);
       return;
     }
     renderMatchToCanvas(canvas,d);
-    addToLog(d,raw);
+    addToLog(d,items[0].raw);
     bulkPanel.hidden=true;
     outputPanel.hidden=false;
     openPackage(false);
@@ -2021,16 +2223,16 @@ function build(){
   // Bulk paste: every block is validated before anything is added to the
   // log, so one bad match doesn't leave the log half-updated.
   const parsed=[];
-  for(let i=0;i<blocks.length;i++){
+  for(let i=0;i<items.length;i++){
     let d;
     try{
-      d=parse(blocks[i]);
+      d=parse(items[i].raw);
     }catch(err){
-      const label=(blocks[i].match(/^Matchday\s+\d+/i)||[])[0] || `Match ${i+1}`;
+      const label=(items[i].raw.match(/^Matchday\s+\d+/im)||[])[0] || `Match ${i+1}`;
       alert(`${label}: ${err.message}`);
       return;
     }
-    parsed.push({d,raw:blocks[i]});
+    parsed.push({d,raw:items[i].raw});
   }
 
   addManyToLog(parsed);
@@ -2149,8 +2351,14 @@ saveAllBtn.addEventListener('click',()=>saveAllGraphics(lastBulkBatch));
 pkg.addEventListener('click',()=>openPackage(!preview.classList.contains('open')));
 galleryOpenBtn.addEventListener('click',()=>openLightbox(0));
 
+statsCompFilter.addEventListener('change',()=>{
+  statsCompetition=statsCompFilter.value;
+  renderPlayerStats();
+});
+
 exportStatsBtn.addEventListener('click',()=>{
-  exportImage(drawPlayerStatsGraphic,'season-player-stats',exportStatsBtn);
+  const slug=filenameSlug(statsCompetition);
+  exportImage(drawPlayerStatsGraphic,slug?`${slug}-player-stats`:'season-player-stats',exportStatsBtn);
 });
 exportLogBtn.addEventListener('click',()=>{
   exportImage(drawSeasonSummaryGraphic,'season-summary',exportLogBtn);

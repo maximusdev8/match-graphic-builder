@@ -18,7 +18,7 @@ Opponent 22’ 28’ 37’ 60’ 76’
 ```
 
 - **Matchday line** (optional): `Matchday X`
-- **Score line**: `Home Team H-A Opponent Name`, with an optional 🟩/🟥
+- **Score line**: `Home Team H-A Opponent Name`, with an optional 🟩/🟥/⬜️
   result marker after the opponent name.
 - **Player lines**: minutes and symbols (⚽️ goal / 🅰️ assist) are matched
   in order. A player can also be listed with no minutes at all (e.g. just
@@ -69,6 +69,51 @@ After a bulk build, a **Save all to Camera Roll** button appears: on iPhone
 it opens the Share Sheet with every graphic at once (choose **Save Images**);
 on desktop your browser may ask permission to allow multiple downloads.
 
+## Competitions
+
+Put a competition name on its own line and every match after it belongs to
+that competition, until the next name. Matches before the first name (or in
+a paste with no names at all) are simply uncategorised.
+
+```
+Playoffs
+
+Matchday 1
+Great Colne 6-5 Opponent
+Mckeown 14’ ⚽️
+Opponent 22’
+
+Matchday 2
+Great Colne 1-0 Opponent
+Maximus 7’ ⚽️
+
+Division 5
+
+Matchday 3
+Great Colne 1-1 Opponent⬜️
+Mckeown 26’ ⚽️
+Opponent 43’
+```
+
+A competition name is any line that isn't `Matchday X` and isn't a score
+line, sitting *before* a match's score line — so a player listed with no
+minutes (which comes after the score line) is never mistaken for one.
+
+What this changes:
+
+- **Match log** groups matches under a heading per competition, with a count.
+- **Player stats** gets a **Competition** dropdown — pick one to see stats
+  for just that competition, or leave it on **All competitions** (the
+  default) for the combined season. Exporting the stats image while a
+  competition is selected exports that competition's leaderboard, titled
+  with its name.
+- **Matchday numbers are scoped to their competition**, so `Matchday 1` of
+  the Playoffs and `Matchday 1` of Division 5 are two different matches and
+  rebuilding one never overwrites the other.
+
+The dropdown and the log headings only appear once you actually have
+competitions — a log without any looks exactly as it did before.
+
 ## Match log
 
 Every match you build is saved to a log in the browser, below the builder.
@@ -102,6 +147,10 @@ across every match in your log: appearances, goals, assists, and combined
 G+A, ranked highest first. It updates the moment you build, rebuild, or
 delete a match — there's nothing to save separately.
 
+If your log has [competitions](#competitions), a **Competition** dropdown
+appears above the table — it defaults to **All competitions**, and picking
+one narrows every figure to that competition.
+
 Note: a player is aggregated by the exact name you typed, so keep spelling
 consistent across weeks (e.g. always "Mckeown", not "McKeown" one week and
 "Mckeown" the next) for their stats to combine correctly.
@@ -114,7 +163,8 @@ same visual style as a match graphic — built from everything currently in
 your log:
 
 - **Player stats export**: a "Top Scorer" / "Top Assister" spotlight plus
-  the full season leaderboard.
+  the full season leaderboard — for the competition currently selected in
+  the dropdown, or the whole season on **All competitions**.
 - **Match log export**: your win/draw/loss record, goals scored/conceded and
   goal difference, a recent-form strip (last 5 results), and every match
   played.
